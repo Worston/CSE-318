@@ -1,0 +1,1 @@
+# Allows importing all heuristics easily
