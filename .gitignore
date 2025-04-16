@@ -1,1 +1,3 @@
 .venv/
+offline_1/__pycache__
+offline_1/heuristics/__pycache__
