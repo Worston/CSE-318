@@ -1,3 +1,3 @@
 # Hamming distance heuristic
-def hamming_distance(board, goal):
+def hamming_distance(board):
     pass

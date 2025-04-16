@@ -1,3 +1,3 @@
 # Manhattan + linear conflict heuristic
-def linear_conflict(board, goal):
+def linear_conflict(board):
     pass
