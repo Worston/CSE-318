@@ -42,7 +42,7 @@ class Board():
             if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
                 new_grid = [row.copy() for row in self.grid]
                 new_grid[i][j], new_grid[x][y] = new_grid[x][y], new_grid[i][j]
-                neighbors.append(Board(new_grid, self))
+                neighbors.append(Board(new_grid, self))       
         return neighbors                  
     
     # def __str__(self):

@@ -32,6 +32,7 @@ def a_star_search(initial_state, heuristic_func):
             neighbor.g_n = current_node.g_n + 1
             neighbor.h_n = heuristic_func(neighbor)
             f_n = neighbor.g_n + neighbor.h_n
+            # print(f_n)
             counter += 1
             heapq.heappush(open_list,(f_n, neighbor.h_n,counter, neighbor))
     return None, 0, 0, 0    

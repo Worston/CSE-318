@@ -14,7 +14,7 @@ def main():
         print("Unsolvable puzzle")
         return
     
-    heuristic = euclidean_distance
+    heuristic = manhattan_distance
     
     path, cost, explored, expanded = a_star_search(initial_state=initial_node, 
                                                    heuristic_func=heuristic)
