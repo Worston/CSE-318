@@ -14,7 +14,7 @@ def main():
         print("Unsolvable puzzle")
         return
     
-    heuristic = manhattan_distance
+    heuristic = hamming_distance
     
     path, cost, explored, expanded = a_star_search(initial_state=initial_node, 
                                                    heuristic_func=heuristic)
@@ -27,7 +27,5 @@ def main():
     print(f"Nodes explored: {explored}")
     print(f"Nodes expanded: {expanded}")    
     
-# Entry point; handles input/output and user interaction
 if __name__ == "__main__":
-    # print("Welcome to the N-Puzzle Solver!")
     main()

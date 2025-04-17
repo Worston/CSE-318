@@ -22,9 +22,10 @@ def a_star_search(initial_state, heuristic_func):
         # if hash(current_node) in closed_list:
         #     continue
         closed_list.add(hash(current_node))
+        expanded += 1
         
         neighbors = current_node.get_neighbor_nodes()
-        expanded += len(neighbors)
+        # expanded += len(neighbors)
         
         for neighbor in neighbors:
             if hash(neighbor) in closed_list:
