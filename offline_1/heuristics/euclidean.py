@@ -8,8 +8,8 @@ def euclidean_distance(board):
             val = board.grid[i][j]
             if val == 0:
                 continue
-            expected_row = val-1 // board.grid_size
-            expected_col = val-1 % board.grid_size
+            expected_row = (val-1) // board.grid_size
+            expected_col = (val-1) % board.grid_size
             dx, dy = i-expected_row, j-expected_col
             total += sqrt(dx**2 + dy**2)
     return total 

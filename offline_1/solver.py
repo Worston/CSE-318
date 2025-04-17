@@ -4,7 +4,8 @@ import heapq
 def a_star_search(initial_state, heuristic_func):
     open_list = []
     counter = 0
-    heapq.heappush(open_list, (0, heuristic_func(initial_state), counter, initial_state))
+    initial_state.h_n = heuristic_func(initial_state)
+    heapq.heappush(open_list, (initial_state.h_n, initial_state.h_n, counter, initial_state))
     closed_list = set()
     explored, expanded = 0,0
     

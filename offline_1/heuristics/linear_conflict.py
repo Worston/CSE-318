@@ -29,5 +29,6 @@ def linear_conflict_(board):
             for j in range(i+1, len(tiles)):
                 if tiles[i] > tiles[j]:
                     conflicts += 1
+    # print(f"Linear Conflict: {manhattan+2*conflicts}")                
     return manhattan + 2*conflicts                        
                         

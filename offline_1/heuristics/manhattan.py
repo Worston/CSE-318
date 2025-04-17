@@ -6,7 +6,8 @@ def manhattan_distance(board):
             val = board.grid[i][j]
             if val == 0:
                 continue
-            expected_row = val-1 // board.grid_size
-            expected_col = val-1 % board.grid_size
+            expected_row = (val-1) // board.grid_size
+            expected_col = (val-1) % board.grid_size
             sum += abs(i - expected_row) + abs(j - expected_col)
+    # print(f"Man Distance: {sum}" )        
     return sum        
