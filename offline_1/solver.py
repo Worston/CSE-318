@@ -11,7 +11,6 @@ def a_star_search(initial_state, heuristic_func):
     
     while open_list:
         _, _, _, current_node = heapq.heappop(open_list)
-        explored += 1
         
         if current_node.is_puzzle_solved():
             path = []
@@ -37,4 +36,5 @@ def a_star_search(initial_state, heuristic_func):
             # print(f_n)
             counter += 1
             heapq.heappush(open_list,(f_n, neighbor.h_n,counter, neighbor))
+            explored += 1
     return None, 0, 0, 0    
