@@ -3,13 +3,10 @@
 #define GRAPH_H
 
 #include <vector>
-#include <string>
 #include <fstream>
-#include <sstream>
 #include <iostream>
-#include <unordered_set>
-#include <set>
 #include <utility>
+#include <algorithm>
 
 struct Edge {
     int u, v, w;
@@ -53,18 +50,27 @@ class Graph {
 
 class Cut {
     public:
-        std::set<int> X;
-        std::set<int> Y;
-    
-        Cut() = default;
-        Cut(const std::set<int>& a, const std::set<int>& b) : X(a), Y(b) {}
-    
+        std::vector<bool> inX;
+        std::vector<bool> inY;
+
+        Cut(int n) : inX(n, false), inY(n, false) {}
+
+        void addToX(int v) {
+            inX[v] = true;
+            inY[v] = false;
+        }
+
+        void addToY(int v) {
+            inY[v] = true;
+            inX[v] = false;
+        }
+
         int computeWeight(const Graph& g) const {
             int total = 0;
-            for (int u : X) {
-                for (const auto& [v, w] : g.adj[u]) {
-                    if (Y.count(v)) {
-                        total += w;
+            for (int u = 0; u < g.n; ++u) {
+                if (inX[u]) {
+                    for (const auto& [v, w] : g.adj[u]) {
+                        if (inY[v]) total += w;
                     }
                 }
             }
