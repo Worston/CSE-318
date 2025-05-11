@@ -35,11 +35,11 @@ def convert_to_csv():
                 cleaned[2],             # |E|
                 cleaned[3],             # Randomized
                 cleaned[4],             # Greedy
-                cleaned[5],             # Semi-greedy Weight
-                cleaned[6],             # Local Search avg Iterations
-                cleaned[7],             # Local Search Avg
+                cleaned[6],             # Semi-greedy Weight
+                cleaned[7],             # Local Search avg Iterations
+                cleaned[8],             # Local Search Avg Value
                 50,                     # GRASP Iterations (fixed)
-                cleaned[8],             # GRASP Best
+                cleaned[9],             # GRASP Best
                 known_best.get(name, '') # Known Best
             ])
 
