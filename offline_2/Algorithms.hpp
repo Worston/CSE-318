@@ -5,6 +5,8 @@
 #include <tuple>
 #include"optimGraph.hpp"
 
+// n -> no. of vertices , m -> no. of edges 
+// O(n) 
 Cut generateRandomCut(const Graph& g) {
     Cut cut(g.n);
     static std::random_device rd;
@@ -19,6 +21,7 @@ Cut generateRandomCut(const Graph& g) {
 }
 
 // Compute average weight of random cuts
+// O(iterations × (n + m))
 double averageRandomCutWeight(const Graph& g, int iterations = 5) {
     int total = 0;
     for (int i = 0; i < iterations; ++i) {
@@ -28,6 +31,7 @@ double averageRandomCutWeight(const Graph& g, int iterations = 5) {
     return total / static_cast<double>(iterations);
 }
 
+// O(degree(node)) 
 int gainToSide(const Graph& g, int node, const std::vector<bool>& oppositePartition) {
     int gain = 0;
     for (const auto& [v, w] : g.adj[node]) {
@@ -36,6 +40,7 @@ int gainToSide(const Graph& g, int node, const std::vector<bool>& oppositePartit
     return gain;
 }
 
+// O(n)
 Cut greedyCut(const Graph& g) {
     Cut cut(g.n);
     std::vector<bool> assigned(g.n, false);
@@ -65,7 +70,7 @@ Cut greedyCut(const Graph& g) {
     return cut;
 }
 
-
+// O(mlogn)
 Cut improvedgreedyCut(const Graph& g) {
     Cut cut(g.n);
     std::vector<bool> assigned(g.n, false);
@@ -152,6 +157,7 @@ std::tuple<int, int, bool> selectFromRCL(
     return RCL[dist(generator)];
 }
 
+// O(n²+m) 
 Cut semiGreedyCut(const Graph& g, double alpha) {
     Cut cut(g.n);
     std::unordered_set<int> remaining;
@@ -162,13 +168,15 @@ Cut semiGreedyCut(const Graph& g, double alpha) {
     cut.addToY(maxEdge.v);
     remaining.erase(maxEdge.u);
     remaining.erase(maxEdge.v);
-
+    
+    // O(n) iterations of the while loop
     while (!remaining.empty()) {
         std::vector<std::tuple<int, int, bool>> candidates;
         int bestGain = INT_MIN, worstGain = INT_MAX;
 
+        //  O(n) to iterate through remaining nodes
         for (int u : remaining) {
-            
+            // O(degree) for each gainToSide calculation
             int gainX = gainToSide(g, u, cut.inY);
             int gainY = gainToSide(g, u, cut.inX);
             int maxGain = std::max(gainX, gainY);
@@ -178,6 +186,7 @@ Cut semiGreedyCut(const Graph& g, double alpha) {
             worstGain = std::min(worstGain, std::min(gainX, gainY));
         }
 
+        //   O(n) to build RCL
         auto [gain, node, assignToX] = selectFromRCL(candidates, worstGain, bestGain, alpha);
         if (assignToX) cut.addToX(node);
         else cut.addToY(node);
@@ -186,6 +195,7 @@ Cut semiGreedyCut(const Graph& g, double alpha) {
     return cut;
 }
 
+// O(iterations * m) where iterations is the number of improvement rounds, and m is the number of edges.
 Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
     std::vector<int> sum_in(g.n, 0), sum_out(g.n, 0);
     
@@ -205,14 +215,17 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
     std::vector<int> vertices(g.n);
     std::iota(vertices.begin(), vertices.end(), 0);
     
+    // O(iterations) outer loop
     while (improved) {
         improved = false;
         iterationCount++;
         
         // Shuffle once per iteration for randomness
+        // O(n) to shuffle vertices
         std::shuffle(vertices.begin(), vertices.end(), std::default_random_engine(std::random_device{}()));
         
         // First-improvement strategy
+        // O(n) to check all vertices
         for (int v : vertices) {
             const int delta = sum_in[v] - sum_out[v];
             if (delta <= 0) continue;
@@ -223,7 +236,7 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
             // Flip the vertex
             was_inX ? cut.addToY(v) : cut.addToX(v);
             
-            // Update neighbor sums in O(d) time
+            //  O(degree(v)) to update sums for each improvement
             for (const auto& [u, w] : g.adj[v]) {
                 if (was_inX) {
                     if (cut.inX[u]) {  // u was same partition
@@ -258,6 +271,8 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
             break;  // Restart iteration after first improvement
         }
     }
+    // Overall: O(iterations * n * avg_degree) in worst case
+    // Since avg_degree = 2m/n, this becomes O(iterations * m)
     return cut;
 }
 
@@ -278,6 +293,7 @@ double averageLocalSearchFromRandom(const Graph& g, int trials, double& avgItera
     return totalWeight / static_cast<double>(trials);
 }
 
+// O(maxIterations * (n² + local_search_iterations * m))
 Cut grasp(const Graph& g, double alpha, int maxIterations) {
     Cut bestCut(g.n); 
     int bestWeight = -1;
