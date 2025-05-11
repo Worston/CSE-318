@@ -17,7 +17,7 @@ def convert_to_csv():
         writer.writerow([
             'Problem', '|V|', '|E|',
             'Randomized', 'Greedy',
-            'Semi-greedy (α)', 'Semi-greedy Weight', 'No. of iterations',
+            'Semi-greedy Weight',
             'Local Search Average Iterations', 'Local Search Average value',
             'GRASP Iterations', 'GRASP Best',
             'Known Best'
@@ -35,13 +35,11 @@ def convert_to_csv():
                 cleaned[2],             # |E|
                 cleaned[3],             # Randomized
                 cleaned[4],             # Greedy
-                cleaned[5],             # Semi-greedy α
-                cleaned[6],             # Semi-greedy Weight
-                5,                      # Local Search loopcount (fixed)
-                cleaned[7],             # Local Search avg Iterations
-                cleaned[8],             # Local Search Avg
+                cleaned[5],             # Semi-greedy Weight
+                cleaned[6],             # Local Search avg Iterations
+                cleaned[7],             # Local Search Avg
                 50,                     # GRASP Iterations (fixed)
-                cleaned[9],             # GRASP Best
+                cleaned[8],             # GRASP Best
                 known_best.get(name, '') # Known Best
             ])
 
