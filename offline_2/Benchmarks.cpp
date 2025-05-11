@@ -53,7 +53,7 @@ void runBenchmarks() {
 
             // Run all heuristics
             res.randomWeight = averageRandomCutWeight(g,5);
-            res.greedyWeight = greedyCut(g).computeWeight(g);
+            res.greedyWeight = improvedgreedyCut(g).computeWeight(g);
             res.semiGreedyAlpha = /*alphaDist(gen)*/ 0.85;
             res.semiGreedyWeight = semiGreedyCut(g, res.semiGreedyAlpha).computeWeight(g);
             

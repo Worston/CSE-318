@@ -1,6 +1,8 @@
 #include <random>
 #include <climits>
 #include <unordered_set>
+#include <queue>
+#include <tuple>
 #include"optimGraph.hpp"
 
 Cut generateRandomCut(const Graph& g) {
@@ -36,40 +38,88 @@ int gainToSide(const Graph& g, int node, const std::vector<bool>& oppositePartit
 
 Cut greedyCut(const Graph& g) {
     Cut cut(g.n);
-    std::unordered_set<int> remaining;
-    for (int i = 0; i < g.n; ++i) remaining.insert(i);
-
+    std::vector<bool> assigned(g.n, false);
+    
     // Start with the heaviest edge
     Edge maxEdge = g.getHeaviestEdge();
     cut.addToX(maxEdge.u);
     cut.addToY(maxEdge.v);
-    remaining.erase(maxEdge.u);
-    remaining.erase(maxEdge.v);
+    assigned[maxEdge.u] = assigned[maxEdge.v] = true;
+    
+    // Process each remaining vertex once
+    for (int u = 0; u < g.n; ++u) {
+        if (assigned[u]) continue;  // Skip already assigned vertices
+        
+        // Calculate gain for each side
+        int gainX = gainToSide(g, u, cut.inY);  // Gain if added to X
+        int gainY = gainToSide(g, u, cut.inX);  // Gain if added to Y
+        
+        // Place vertex in the partition with higher gain
+        if (gainX >= gainY) {
+            cut.addToX(u);
+        } else {
+            cut.addToY(u);
+        }
+        assigned[u] = true;
+    }
+    return cut;
+}
 
-    while (!remaining.empty()) {
-        int bestNode = -1;
-        bool assignToX = true;
-        int bestGain = INT_MIN;
 
-        for (int u : remaining) {
-            int gainX = gainToSide(g, u, cut.inY);  // Gain if added to X
-            int gainY = gainToSide(g, u, cut.inX);  // Gain if added to Y
+Cut improvedgreedyCut(const Graph& g) {
+    Cut cut(g.n);
+    std::vector<bool> assigned(g.n, false);
+    
+    // Use a max-heap that stores both gains to avoid recomputation
+    using NodeEntry = std::tuple<int, int, int, int>; // (max_gain, gainX, gainY, node)
+    std::priority_queue<NodeEntry> gain_queue;
 
-            if (gainX >= gainY && gainX > bestGain) {
-                bestGain = gainX;
-                bestNode = u;
-                assignToX = true;
-            } else if (gainY > gainX && gainY > bestGain) {
-                bestGain = gainY;
-                bestNode = u;
-                assignToX = false;
+    // Start with heaviest edge
+    Edge max_edge = g.getHeaviestEdge();
+    cut.addToX(max_edge.u);
+    cut.addToY(max_edge.v);
+    assigned[max_edge.u] = assigned[max_edge.v] = true;
+
+    // Initialize queue with precomputed gains
+    for (int u = 0; u < g.n; ++u) {
+        if (assigned[u]) continue;
+        
+        int gainX = gainToSide(g, u, cut.inY);
+        int gainY = gainToSide(g, u, cut.inX);
+        gain_queue.emplace(std::max(gainX, gainY), gainX, gainY, u);
+    }
+
+    while (!gain_queue.empty()) {
+        auto [_, gainX, gainY, u] = gain_queue.top();
+        gain_queue.pop();
+        
+        if (assigned[u]) continue;
+        
+        // Use precomputed gains from queue
+        if (gainX >= gainY) {
+            cut.addToX(u);
+            // Update neighbors' gains for Y partition
+            for (auto [v, w] : g.adj[u]) {
+                if (!assigned[v]) {
+                    int newGainY = gainToSide(g, v, cut.inX);
+                    int newGainX = gainToSide(g, v, cut.inY);
+                    gain_queue.emplace(std::max(newGainX, newGainY), newGainX, newGainY, v);
+                }
+            }
+        } else {
+            cut.addToY(u);
+            // Update neighbors' gains for X partition
+            for (auto [v, w] : g.adj[u]) {
+                if (!assigned[v]) {
+                    int newGainX = gainToSide(g, v, cut.inY);
+                    int newGainY = gainToSide(g, v, cut.inX);
+                    gain_queue.emplace(std::max(newGainX, newGainY), newGainX, newGainY, v);
+                }
             }
         }
-
-        if (assignToX) cut.addToX(bestNode);
-        else cut.addToY(bestNode);
-        remaining.erase(bestNode);
+        assigned[u] = true;
     }
+    
     return cut;
 }
 

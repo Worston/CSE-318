@@ -41,7 +41,7 @@ int main() {
     // Greedy Cut
     std::cout << "\n===== Greedy Cut =====\n";
     start = clock::now();
-    Cut greedy = greedyCut(g);
+    Cut greedy = improvedgreedyCut(g);
     int greedyWeight = greedy.computeWeight(g);
     end = clock::now();
     std::cout << "Weight: " << greedyWeight << "\n";
@@ -68,9 +68,9 @@ int main() {
     std::cout << "Time: " << std::chrono::duration<double>(end - start).count() << "s\n";
 
     // GRASP
-    std::cout << "\n===== GRASP (50 iterations) =====\n";
+    std::cout << "\n===== GRASP (5 iterations) =====\n";
     start = clock::now();
-    Cut graspCut = grasp(g, alpha, 50);
+    Cut graspCut = grasp(g, alpha, 5);
     int graspWeight = graspCut.computeWeight(g);
     end = clock::now();
     std::cout << "Weight: " << graspWeight << "\n";
