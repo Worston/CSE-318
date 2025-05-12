@@ -52,13 +52,13 @@ void runBenchmarks() {
             res.m = g.edges.size();
 
             // Run all heuristics
-            res.randomWeight = averageRandomCutWeight(g,5);
+            res.randomWeight = averageRandomCutWeight(g,100);
             res.greedyWeight = improvedgreedyCut(g).computeWeight(g);
             res.semiGreedyAlpha = /*alphaDist(gen)*/ 0.85;
             res.semiGreedyWeight = semiGreedyCut(g, res.semiGreedyAlpha).computeWeight(g);
             
             double avgIterations;
-            res.localAvgWeight = static_cast<int>(averageLocalSearchFromRandom(g, 5, avgIterations));
+            res.localAvgWeight = static_cast<int>(averageLocalSearchFromRandom(g, 20, avgIterations));
             res.localAvgIterations = static_cast<int>(avgIterations);
             
             res.graspBest = grasp(g, /*alphaDist(gen)*/ res.semiGreedyAlpha, 50).computeWeight(g);
