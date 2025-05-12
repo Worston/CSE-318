@@ -195,12 +195,102 @@ Cut semiGreedyCut(const Graph& g, double alpha) {
     return cut;
 }
 
-Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
-    std::vector<int> sum_in(g.n, 0), sum_out(g.n, 0);
+// Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
+//     std::vector<int> sum_in(g.n, 0), sum_out(g.n, 0);
     
-    // Initialize sum_in and sum_out
-    for (int v = 0; v < g.n; ++v) {
-        for (const auto& [u, w] : g.adj[v]) {
+//     // Initialize sum_in and sum_out
+//     for (int v = 0; v < g.n; ++v) {
+//         for (const auto& [u, w] : g.adj[v]) {
+//             if ((cut.inX[v] && cut.inX[u]) || (cut.inY[v] && cut.inY[u])) {
+//                 sum_in[v] += w;
+//             } else {
+//                 sum_out[v] += w;
+//             }
+//         }
+//     }
+
+//     bool improved = true;
+//     iterationCount = 0;
+    
+//     while (improved) {
+//         improved = false;
+//         iterationCount++;
+        
+//         int bestDelta = 0;
+//         int bestVertex = -1;
+//         bool bestWasInX = false;
+
+//         // Investigate all possible moves
+//         for (int v = 0; v < g.n; ++v) {
+//             const bool currentInX = cut.inX[v];
+//             const int delta = currentInX ? 
+//                 (sum_out[v] - sum_in[v]) :  // Potential gain if moved to Y
+//                 (sum_in[v] - sum_out[v]);   // Potential gain if moved to X
+
+//             if (delta > bestDelta) {
+//                 bestDelta = delta;
+//                 bestVertex = v;
+//                 bestWasInX = currentInX;
+//             }
+//         }
+
+//         // Apply best move if found
+//         if (bestDelta > 0) {
+//             improved = true;
+            
+//             // Flip the vertex
+//             if (bestWasInX) {
+//                 cut.addToY(bestVertex);
+//             } else {
+//                 cut.addToX(bestVertex);
+//             }
+
+//             // Update sum_in and sum_out for neighbors
+//             for (const auto& [u, w] : g.adj[bestVertex]) {
+//                 // Update neighbor's sums
+//                 if (bestWasInX) {
+//                     if (cut.inX[u]) {  // Neighbor was in same partition
+//                         sum_out[u] += w;
+//                         sum_in[u] -= w;
+//                     } else {  // Neighbor was in opposite partition
+//                         sum_in[u] += w;
+//                         sum_out[u] -= w;
+//                     }
+//                 } else {
+//                     if (cut.inY[u]) {  // Neighbor was in same partition
+//                         sum_out[u] += w;
+//                         sum_in[u] -= w;
+//                     } else {  // Neighbor was in opposite partition
+//                         sum_in[u] += w;
+//                         sum_out[u] -= w;
+//                     }
+//                 }
+//             }
+
+//             // Update flipped vertex's sums
+//             sum_in[bestVertex] = sum_out[bestVertex] = 0;
+//             for (const auto& [u, w] : g.adj[bestVertex]) {
+//                 if ((cut.inX[bestVertex] && cut.inX[u]) || 
+//                     (cut.inY[bestVertex] && cut.inY[u])) {
+//                     sum_in[bestVertex] += w;
+//                 } else {
+//                     sum_out[bestVertex] += w;
+//                 }
+//             }
+//         }
+//     }
+    
+//     return cut;
+// }
+
+// Best-improvement local search for MAX-CUT with gain caching (optimized for dense graphs)
+Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
+    int n = g.n;
+    std::vector<int> sum_in(n, 0), sum_out(n, 0), delta(n, 0);
+
+    // Initialize sum_in and sum_out for each vertex
+    for (int v = 0; v < n; ++v) {
+        for (auto& [u, w] : g.adj[v]) {
             if ((cut.inX[v] && cut.inX[u]) || (cut.inY[v] && cut.inY[u])) {
                 sum_in[v] += w;
             } else {
@@ -209,79 +299,73 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
         }
     }
 
-    bool improved = true;
-    iterationCount = 0;
-    
-    while (improved) {
-        improved = false;
-        iterationCount++;
-        
-        int bestDelta = 0;
-        int bestVertex = -1;
-        bool bestWasInX = false;
-
-        // Investigate all possible moves
-        for (int v = 0; v < g.n; ++v) {
-            const bool currentInX = cut.inX[v];
-            const int delta = currentInX ? 
-                (sum_out[v] - sum_in[v]) :  // Potential gain if moved to Y
-                (sum_in[v] - sum_out[v]);   // Potential gain if moved to X
-
-            if (delta > bestDelta) {
-                bestDelta = delta;
-                bestVertex = v;
-                bestWasInX = currentInX;
-            }
-        }
-
-        // Apply best move if found
-        if (bestDelta > 0) {
-            improved = true;
-            
-            // Flip the vertex
-            if (bestWasInX) {
-                cut.addToY(bestVertex);
-            } else {
-                cut.addToX(bestVertex);
-            }
-
-            // Update sum_in and sum_out for neighbors
-            for (const auto& [u, w] : g.adj[bestVertex]) {
-                // Update neighbor's sums
-                if (bestWasInX) {
-                    if (cut.inX[u]) {  // Neighbor was in same partition
-                        sum_out[u] += w;
-                        sum_in[u] -= w;
-                    } else {  // Neighbor was in opposite partition
-                        sum_in[u] += w;
-                        sum_out[u] -= w;
-                    }
-                } else {
-                    if (cut.inY[u]) {  // Neighbor was in same partition
-                        sum_out[u] += w;
-                        sum_in[u] -= w;
-                    } else {  // Neighbor was in opposite partition
-                        sum_in[u] += w;
-                        sum_out[u] -= w;
-                    }
-                }
-            }
-
-            // Update flipped vertex's sums
-            sum_in[bestVertex] = sum_out[bestVertex] = 0;
-            for (const auto& [u, w] : g.adj[bestVertex]) {
-                if ((cut.inX[bestVertex] && cut.inX[u]) || 
-                    (cut.inY[bestVertex] && cut.inY[u])) {
-                    sum_in[bestVertex] += w;
-                } else {
-                    sum_out[bestVertex] += w;
-                }
-            }
-        }
+    // Initialize gain (delta) for each vertex
+    for (int v = 0; v < n; ++v) {
+        delta[v] = cut.inX[v] ? (sum_out[v] - sum_in[v]) : (sum_in[v] - sum_out[v]);
     }
-    
+
+    iterationCount = 0;
+    while (true) {
+        int bestVertex = -1;
+        int bestDelta = std::numeric_limits<int>::min();
+
+        // Find the vertex with the maximum gain
+        for (int v = 0; v < n; ++v) {
+            if (delta[v] > bestDelta) {
+                bestDelta = delta[v];
+                bestVertex = v;
+            }
+        }
+
+        if (bestVertex == -1 || bestDelta <= 0) break; // no improvement possible
+
+        bool wasInX = cut.inX[bestVertex];
+
+        // Flip partition
+        if (wasInX) {
+            cut.inX[bestVertex] = false;
+            cut.inY[bestVertex] = true;
+        } else {
+            cut.inY[bestVertex] = false;
+            cut.inX[bestVertex] = true;
+        }
+        iterationCount++;
+
+        // Update sum_in, sum_out, and delta for affected vertices
+        for (auto& [u, w] : g.adj[bestVertex]) {
+            // Edge (bestVertex, u) was internal if both in same set before flip
+            bool preInternal = (wasInX == cut.inX[u]);
+
+            if (preInternal) {
+                sum_in[u] -= w;
+                sum_out[u] += w;
+            } else {
+                sum_out[u] -= w;
+                sum_in[u] += w;
+            }
+
+            // Recompute gain for neighbor u
+            delta[u] = cut.inX[u] ? (sum_out[u] - sum_in[u]) : (sum_in[u] - sum_out[u]);
+        }
+
+        // Recompute sum_in and sum_out for moved vertex
+        sum_in[bestVertex] = sum_out[bestVertex] = 0;
+        for (auto& [u, w] : g.adj[bestVertex]) {
+            if ((cut.inX[bestVertex] && cut.inX[u]) || (cut.inY[bestVertex] && cut.inY[u])) {
+                sum_in[bestVertex] += w;
+            } else {
+                sum_out[bestVertex] += w;
+            }
+        }
+
+        // Recompute gain for moved vertex
+        delta[bestVertex] = cut.inX[bestVertex] ? (sum_out[bestVertex] - sum_in[bestVertex])
+                                               : (sum_in[bestVertex] - sum_out[bestVertex]);
+    }
+
     return cut;
 }
+
 /*
 Each iteration improves by only 1 unit of weight
 
