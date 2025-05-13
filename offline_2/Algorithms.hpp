@@ -101,7 +101,7 @@ Cut improvedgreedyCut(const Graph& g) {
         if (assigned[u]) continue;
         
         // Use precomputed gains from queue
-        if (gainX >= gainY) {
+        if (gainX > gainY) {
             cut.addToX(u);
             // Update neighbors' gains for Y partition ; O(E)
             for (auto [v, w] : g.adj[u]) {
