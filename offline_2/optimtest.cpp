@@ -31,9 +31,9 @@ int main() {
     std::cout << "Time: " << std::chrono::duration<double>(end - start).count() << "s\n";
 
     // Average of Random Cuts
-    std::cout << "\n===== Average of 10 Random Cuts =====\n";
+    std::cout << "\n===== Average of 100 Random Cuts =====\n";
     start = clock::now();
-    double avgRandom = averageRandomCutWeight(g, 10);
+    double avgRandom = averageRandomCutWeight(g, 100);
     end = clock::now();
     std::cout << "Average Weight: " << (int)avgRandom << "\n";
     std::cout << "Time: " << std::chrono::duration<double>(end - start).count() << "s\n";
@@ -41,7 +41,7 @@ int main() {
     // Greedy Cut
     std::cout << "\n===== Greedy Cut =====\n";
     start = clock::now();
-    Cut greedy = improvedgreedyCut(g);
+    Cut greedy = /*improvedgreedyCut(g);*/ greedyCut(g);
     int greedyWeight = greedy.computeWeight(g);
     end = clock::now();
     std::cout << "Weight: " << greedyWeight << "\n";
@@ -61,16 +61,16 @@ int main() {
     std::cout << "\n===== Local Search from Random =====\n";
     start = clock::now();
     double avgIter = 0.0;
-    double avgLSWeight = averageLocalSearchFromRandom(g, 5, avgIter);
+    double avgLSWeight = averageLocalSearchFromRandom(g, 20, avgIter);
     end = clock::now();
     std::cout << "Average Weight: " << (int)avgLSWeight << "\n";
-    std::cout << "Average Iterations: " << (int)avgIter << "\n";
+    //std::cout << "Average Iterations: " << (int)avgIter << "\n";
     std::cout << "Time: " << std::chrono::duration<double>(end - start).count() << "s\n";
 
     // GRASP
-    std::cout << "\n===== GRASP (5 iterations) =====\n";
+    std::cout << "\n===== GRASP (50 iterations) =====\n";
     start = clock::now();
-    Cut graspCut = grasp(g, alpha, 5);
+    Cut graspCut = grasp(g, alpha, 50);
     int graspWeight = graspCut.computeWeight(g);
     end = clock::now();
     std::cout << "Weight: " << graspWeight << "\n";
@@ -81,7 +81,7 @@ int main() {
     std::cout << "Random Cut: " << randWeight << "\n";
     std::cout << "Greedy Cut: " << greedyWeight << "\n";
     std::cout << "Semi-Greedy Cut (alpha=" << alpha << "): " << semiWeight << "\n";
-    std::cout << "Average Local Search from Random: " << avgLSWeight << "\n";
+    std::cout << "Average Local Search from Random: " << (int)avgLSWeight << "\n";
     std::cout << "GRASP: " << graspWeight << "\n";
 
     return 0;

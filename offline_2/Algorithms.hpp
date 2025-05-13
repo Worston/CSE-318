@@ -195,94 +195,6 @@ Cut semiGreedyCut(const Graph& g, double alpha) {
     return cut;
 }
 
-// Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
-//     std::vector<int> sum_in(g.n, 0), sum_out(g.n, 0);
-    
-//     // Initialize sum_in and sum_out
-//     for (int v = 0; v < g.n; ++v) {
-//         for (const auto& [u, w] : g.adj[v]) {
-//             if ((cut.inX[v] && cut.inX[u]) || (cut.inY[v] && cut.inY[u])) {
-//                 sum_in[v] += w;
-//             } else {
-//                 sum_out[v] += w;
-//             }
-//         }
-//     }
-
-//     bool improved = true;
-//     iterationCount = 0;
-    
-//     while (improved) {
-//         improved = false;
-//         iterationCount++;
-        
-//         int bestDelta = 0;
-//         int bestVertex = -1;
-//         bool bestWasInX = false;
-
-//         // Investigate all possible moves
-//         for (int v = 0; v < g.n; ++v) {
-//             const bool currentInX = cut.inX[v];
-//             const int delta = currentInX ? 
-//                 (sum_out[v] - sum_in[v]) :  // Potential gain if moved to Y
-//                 (sum_in[v] - sum_out[v]);   // Potential gain if moved to X
-
-//             if (delta > bestDelta) {
-//                 bestDelta = delta;
-//                 bestVertex = v;
-//                 bestWasInX = currentInX;
-//             }
-//         }
-
-//         // Apply best move if found
-//         if (bestDelta > 0) {
-//             improved = true;
-            
-//             // Flip the vertex
-//             if (bestWasInX) {
-//                 cut.addToY(bestVertex);
-//             } else {
-//                 cut.addToX(bestVertex);
-//             }
-
-//             // Update sum_in and sum_out for neighbors
-//             for (const auto& [u, w] : g.adj[bestVertex]) {
-//                 // Update neighbor's sums
-//                 if (bestWasInX) {
-//                     if (cut.inX[u]) {  // Neighbor was in same partition
-//                         sum_out[u] += w;
-//                         sum_in[u] -= w;
-//                     } else {  // Neighbor was in opposite partition
-//                         sum_in[u] += w;
-//                         sum_out[u] -= w;
-//                     }
-//                 } else {
-//                     if (cut.inY[u]) {  // Neighbor was in same partition
-//                         sum_out[u] += w;
-//                         sum_in[u] -= w;
-//                     } else {  // Neighbor was in opposite partition
-//                         sum_in[u] += w;
-//                         sum_out[u] -= w;
-//                     }
-//                 }
-//             }
-
-//             // Update flipped vertex's sums
-//             sum_in[bestVertex] = sum_out[bestVertex] = 0;
-//             for (const auto& [u, w] : g.adj[bestVertex]) {
-//                 if ((cut.inX[bestVertex] && cut.inX[u]) || 
-//                     (cut.inY[bestVertex] && cut.inY[u])) {
-//                     sum_in[bestVertex] += w;
-//                 } else {
-//                     sum_out[bestVertex] += w;
-//                 }
-//             }
-//         }
-//     }
-    
-//     return cut;
-// }
-
 // Best-improvement local search for MAX-CUT with gain caching (optimized for dense graphs)
 Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
     int n = g.n;
@@ -301,7 +213,7 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
 
     // Initialize gain (delta) for each vertex
     for (int v = 0; v < n; ++v) {
-        delta[v] = cut.inX[v] ? (sum_out[v] - sum_in[v]) : (sum_in[v] - sum_out[v]);
+        delta[v] = (sum_in[v] - sum_out[v]);
     }
 
     iterationCount = 0;
@@ -323,11 +235,9 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
 
         // Flip partition
         if (wasInX) {
-            cut.inX[bestVertex] = false;
-            cut.inY[bestVertex] = true;
+            cut.addToY(bestVertex);
         } else {
-            cut.inY[bestVertex] = false;
-            cut.inX[bestVertex] = true;
+            cut.addToX(bestVertex);
         }
         iterationCount++;
 
@@ -345,7 +255,7 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
             }
 
             // Recompute gain for neighbor u
-            delta[u] = cut.inX[u] ? (sum_out[u] - sum_in[u]) : (sum_in[u] - sum_out[u]);
+            delta[u] = (sum_in[u] - sum_out[u]);
         }
 
         // Recompute sum_in and sum_out for moved vertex
@@ -359,8 +269,7 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
         }
 
         // Recompute gain for moved vertex
-        delta[bestVertex] = cut.inX[bestVertex] ? (sum_out[bestVertex] - sum_in[bestVertex])
-                                               : (sum_in[bestVertex] - sum_out[bestVertex]);
+        delta[bestVertex] = (sum_in[bestVertex] - sum_out[bestVertex]);
     }
 
     return cut;
@@ -369,9 +278,9 @@ Cut localSearch(const Graph& g, Cut cut, int& iterationCount) {
 /*
 Each iteration improves by only 1 unit of weight
 
-Maximum possible improvements: O(total edge weight W)
+Maximum possible improvements: O(total edge weight W) or V
 
-Becomes O(W × (V + E))
+Becomes O(W × (V + E)) or O(V * (V+E))
 */
 
 // O(iterations * E) where iterations is the number of improvement rounds, and E is the number of edges.
@@ -467,10 +376,10 @@ double averageLocalSearchFromRandom(const Graph& g, int trials, double& avgItera
     for (int i = 0; i < trials; ++i) {
         int iterationCount = 0;
         Cut init = generateRandomCut(g);
-        Cut optimized = optimlocalSearch(g, init, iterationCount);
-        totalWeight += optimized.computeWeight(g);
-        // Cut total = localSearch(g, init, iterationCount);
-        // totalWeight += total.computeWeight(g);
+        // Cut optimized = optimlocalSearch(g, init, iterationCount);
+        // totalWeight += optimized.computeWeight(g);
+        Cut total = localSearch(g, init, iterationCount);
+        totalWeight += total.computeWeight(g);
         totalIterations += iterationCount;
     }
 
@@ -489,9 +398,9 @@ Cut grasp(const Graph& g, double alpha, int maxIterations) {
         
         int iterations;
         // O(I*E)
-        currentCut = optimlocalSearch(g, currentCut, iterations);
+        // currentCut = optimlocalSearch(g, currentCut, iterations);
         // O(I*(V+E))
-        // currentCut = localSearch(g, currentCut, iterations);
+        currentCut = localSearch(g, currentCut, iterations);
         
         // Check if this is the best solution so far ;O(E)
         int currentWeight = currentCut.computeWeight(g);
