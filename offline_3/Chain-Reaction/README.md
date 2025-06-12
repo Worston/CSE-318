@@ -37,7 +37,7 @@ Both the startup scripts (start-game.sh and start-game.bat) will check these req
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/Chain-Reaction.git
+git clone https://github.com/Worston/CSE-318.git
 cd Chain-Reaction
 ```
 
