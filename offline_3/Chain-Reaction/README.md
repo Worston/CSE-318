@@ -14,7 +14,7 @@ This implementation features:
 
 ## Screenshots
 
-![Game Screenshot](Frontend/public/game-screenshot.png)
+![Game Screenshot](Frontend/public/game-ss.png)
 
 ## Architecture
 
