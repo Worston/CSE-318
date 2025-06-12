@@ -118,7 +118,7 @@ class ChainReactionGame:
                 explosion_occurred = True  # Set flag only if we have explosions
                 
                 # Process explosions with small delay for visual effect
-                print(f"💥 Processing {len(exploding_cells)} explosions...")
+                # print(f"💥 Processing {len(exploding_cells)} explosions...")
                 
                 # Add small delay for explosion visualization (only in interactive mode)
                 # Don't add delay for AI calculations to maintain performance

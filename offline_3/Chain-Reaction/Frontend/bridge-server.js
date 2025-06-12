@@ -519,29 +519,53 @@ async function startPythonBackend(config) {
         rows: config.rows,
         cols: config.cols,
         mode: backendMode,
-        redAI: {
-          type: config.redAI.type === 'MINIMAX' ? 'Smart' : 'Random',
-          difficulty: config.redAI.difficulty,
-          heuristic: config.redAI.heuristic || 'combined_v2'
-        },
-        blueAI: {
-          type: config.blueAI.type === 'MINIMAX' ? 'Smart' : 'Random',
-          difficulty: config.blueAI.difficulty,
-          heuristic: config.blueAI.heuristic || 'orb_count'
-        },
+        redAI: config.redAI.type === 'MINIMAX' ? 
+          {
+            type: 'Smart',
+            difficulty: config.redAI.difficulty === 'EASY' ? 'Easy' : 
+                        config.redAI.difficulty === 'MEDIUM' ? 'Medium' : 
+                        config.redAI.difficulty === 'HARD' ? 'Hard' : 'Medium',
+            heuristic: config.redAI.heuristic || 'combined_v2'
+          } : 
+          {
+            type: 'Random'
+          },
+        blueAI: config.blueAI.type === 'MINIMAX' ? 
+          {
+            type: 'Smart',
+            difficulty: config.blueAI.difficulty === 'EASY' ? 'Easy' : 
+                        config.blueAI.difficulty === 'MEDIUM' ? 'Medium' : 
+                        config.blueAI.difficulty === 'HARD' ? 'Hard' : 'Medium',
+            heuristic: config.blueAI.heuristic || 'orb_count'
+          } : 
+          {
+            type: 'Random'
+          },
         firstPlayer: 'Red' // Always start with Red in AI vs AI
       });
     } else {
       // Handle single AI configuration for other modes
-      configContent = JSON.stringify({
-        rows: config.rows,
-        cols: config.cols,
-        mode: backendMode,
-        aiType: backendAiType || 'Smart',
-        difficulty: backendDifficulty || 'Medium',
-        firstPlayer: backendFirstPlayer || 'Human',
-        heuristic: config.heuristic || 'combined_v2'
-      });
+      if (backendAiType === 'Random') {
+        // For Random AI, don't include difficulty or heuristic
+        configContent = JSON.stringify({
+          rows: config.rows,
+          cols: config.cols,
+          mode: backendMode,
+          aiType: 'Random',
+          firstPlayer: backendFirstPlayer || 'Human'
+        });
+      } else {
+        // For Smart AI, include difficulty and heuristic
+        configContent = JSON.stringify({
+          rows: config.rows,
+          cols: config.cols,
+          mode: backendMode,
+          aiType: backendAiType || 'Smart',
+          difficulty: backendDifficulty || 'Medium',
+          firstPlayer: backendFirstPlayer || 'Human',
+          heuristic: config.heuristic || 'combined_v2'
+        });
+      }
     }
     
     const configPath = path.join(BACKEND_DIR, 'backend_config.json');

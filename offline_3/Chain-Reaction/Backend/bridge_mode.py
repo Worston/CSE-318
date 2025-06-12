@@ -65,7 +65,7 @@ class BridgeGameController(GameController):
             # Handle AI vs AI mode with individual AI configurations
             if config.get('mode') == 'AI vs AI' and 'redAI' in config and 'blueAI' in config:
                 # Use specific AI configuration based on current player
-                if current_player.value == 'RED':
+                if current_player.value == 'Red':
                     ai_config = config['redAI']
                 else:
                     ai_config = config['blueAI']
@@ -439,17 +439,17 @@ class BridgeGameController(GameController):
             # Handle AI vs AI mode with individual AI configurations
             if config.get('mode') == 'AI vs AI' and 'redAI' in config and 'blueAI' in config:
                 # Use specific AI configuration based on current player
-                if current_player.value == 'RED':
+                if current_player.value == 'Red':
                     ai_config = config['redAI']
                 else:
                     ai_config = config['blueAI']
                 
-                print(f"Using {current_player.value} AI config: {ai_config}", file=sys.stderr)
-                
                 if ai_config.get('type') == 'Random':
+                    print(f"Using {current_player.value} AI config: Random AI (no difficulty or heuristic needed)", file=sys.stderr)
                     ai = RandomAI(ai_player)
                     print(f"Created Random AI for {ai_player.value}", file=sys.stderr)
                 else:
+                    print(f"Using {current_player.value} AI config: {ai_config}", file=sys.stderr)
                     depth = self.get_difficulty_depth(ai_config.get('difficulty', 'Medium'))
                     heuristic_func = self.get_heuristic_function(ai_config.get('heuristic', 'combined_v2'))
                     ai = MinimaxAI(ai_player, depth, heuristic_func=heuristic_func)
@@ -457,6 +457,7 @@ class BridgeGameController(GameController):
             else:
                 # Handle legacy single AI configuration
                 if config.get('aiType') == 'Random':
+                    print(f"Using legacy Random AI config (no difficulty or heuristic needed)", file=sys.stderr)
                     ai = RandomAI(ai_player)
                     print(f"Created Random AI for {ai_player.value}", file=sys.stderr)
                 else:

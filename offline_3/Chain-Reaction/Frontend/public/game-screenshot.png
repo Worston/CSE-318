@@ -1,0 +1,6 @@
+<!-- This is a placeholder SVG for the game screenshot -->
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f0f0f0"/>
+  <text x="50%" y="50%" font-family="Arial" font-size="20" text-anchor="middle">Chain Reaction Game Screenshot</text>
+  <text x="50%" y="70%" font-family="Arial" font-size="14" text-anchor="middle">(Replace with actual screenshot)</text>
+</svg>

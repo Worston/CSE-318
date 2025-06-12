@@ -1,0 +1,16 @@
+{
+  "name": "chain-reaction-game",
+  "version": "1.0.0",
+  "description": "A digital implementation of the Chain Reaction strategy game with AI opponents",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/Chain-Reaction"
+  },
+  "scripts": {
+    "start": "cd Frontend && npm start",
+    "install": "cd Frontend && npm install"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

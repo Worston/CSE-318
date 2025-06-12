@@ -8,7 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# Keep the dist directory for easier deployment
+# dist
 dist-ssr
 *.local
 
@@ -23,16 +24,12 @@ dist-ssr
 *.sln
 *.sw?
 
-vite.config.js
-package.json
-package-lock.json
-README.md
-eslint.config.js
-specs.txt
-improved_gamestate.txt
-improved_gamestate.txt.temp
-backend_config.json
-__pycache__
-postcss.config.js
-tailwind.config.js
-assets/
+# Game state files (these are generated during runtime)
+**/improved_gamestate.txt
+**/improved_gamestate.txt.temp
+# We include backend_config.json as a template
+
+# Python cache files
+**/__pycache__/
+*.py[cod]
+*$py.class
