@@ -38,7 +38,7 @@ Both the startup scripts (start-game.sh and start-game.bat) will check these req
 
 ```bash
 git clone https://github.com/Worston/CSE-318.git
-cd Chain-Reaction
+cd CSE-318/offline_3/Chain-Reaction
 ```
 
 ### 2. Quick Setup (Recommended)
