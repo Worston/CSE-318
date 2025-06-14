@@ -51,11 +51,6 @@ chmod +x start-game.sh  # Make the script executable (only needed first time)
 ./start-game.sh
 ```
 
-**On Windows:**
-```
-start-game.bat
-```
-
 ### 3. Manual Installation (Alternative)
 
 If you prefer to install dependencies manually:
