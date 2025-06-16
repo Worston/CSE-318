@@ -84,13 +84,9 @@ class ChainReactionGame:
         self.board[row][col].player = player
         self.move_count += 1
         
-        # Handle explosions with improved logic
         self._handle_explosions()
-        
-        # Check win condition after explosions
         self._check_win_condition()
-        
-        # Switch player if game is not over
+        #switch player if game is not over
         if not self.game_over:
             self.current_player = Player.BLUE if self.current_player == Player.RED else Player.RED
         return True
@@ -105,7 +101,7 @@ class ChainReactionGame:
             explosion_occurred = False
             iteration_count += 1
             
-            # Find all cells that need to explode
+            #all cells that need to explode
             exploding_cells = []
             for row in range(self.rows):
                 for col in range(self.cols):
@@ -115,22 +111,17 @@ class ChainReactionGame:
                         exploding_cells.append((row, col))
             
             if exploding_cells:
-                explosion_occurred = True  # Set flag only if we have explosions
+                explosion_occurred = True  
                 
                 # Process explosions with small delay for visual effect
                 # print(f"💥 Processing {len(exploding_cells)} explosions...")
                 
-                # Add small delay for explosion visualization (only in interactive mode)
-                # Don't add delay for AI calculations to maintain performance
                 if hasattr(self, 'interactive_mode') and self.interactive_mode:
-                    time.sleep(0.1)  # Very small delay for explosion visualization
+                    time.sleep(0.1)  #Very small delay for explosion visualization
                 
                 for row, col in exploding_cells:
                     self._explode_cell(row, col)
-                
-                # CRITICAL: Check if game is over during explosion handling
                 if self._is_game_over_during_explosions():
-                    # Game over detected - break out of explosion loop
                     break
         
         if iteration_count >= max_iterations:
@@ -149,11 +140,8 @@ class ChainReactionGame:
                 elif cell.player == Player.BLUE:
                     blue_orbs += cell.orbs
         
-        # Game is over if one player has orbs AND the other has none (indicating elimination)
-        # Only check after both players have had a chance to play (move_count > 2)
         total_orbs = red_orbs + blue_orbs
         if total_orbs > 0 and self.move_count > 2:
-            # Game over when one player has orbs AND the other has none
             return (red_orbs == 0 and blue_orbs > 0) or (blue_orbs == 0 and red_orbs > 0)
         
         return False
@@ -163,17 +151,12 @@ class ChainReactionGame:
         cell = self.board[row][col]
         exploding_player = cell.player
         critical_mass = self.get_critical_mass(row, col)
-        
-        # Calculate orbs to distribute (use critical mass, not all orbs)
         orbs_to_distribute = critical_mass
-        
-        # Reduce orbs in exploding cell by critical mass
         cell.orbs -= orbs_to_distribute
         if cell.orbs <= 0:
             cell.orbs = 0
             cell.player = Player.EMPTY
-        
-        # Distribute orbs to neighbors (1 orb to each neighbor)
+    
         neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         for dr, dc in neighbors:
             nr, nc = row + dr, col + dc
@@ -196,9 +179,7 @@ class ChainReactionGame:
                     blue_orbs += cell.orbs
         
         total_orbs = red_orbs + blue_orbs
-        
-        # Game is over if there are orbs on the board and one player has no orbs
-        # But only after both players have made at least one move (move_count >= 2)
+
         if total_orbs > 0 and self.move_count >= 2:
             if red_orbs > 0 and blue_orbs == 0:
                 self.game_over = True
@@ -246,10 +227,10 @@ class ChainReactionGame:
         """Convert board to file format with game state metadata"""
         lines = [f"{move_type}:"]
         if self.move_count == 0:
-            # Game just started - no one has moved yet, set last player as Blue so Red goes first
+            #Game just started - no one has moved yet, Red goes first
             last_player = Player.BLUE
         else:
-            # Someone has moved - the last player is the opposite of current player
+            #Someone has moved - the last player is the opposite of current player
             last_player = Player.BLUE if self.current_player == Player.RED else Player.RED
         
         lines.append(f"LastPlayer: {last_player.value}")
@@ -278,11 +259,7 @@ class ChainReactionGame:
             lines = content.split('\n')
             if not lines:
                 raise ValueError("Empty file")
-            
-            # Parse header (e.g., "Game Start:", "Human Move:", etc.)
             header = lines[0]
-            
-            # Parse metadata and find board start
             metadata = {}
             board_start_idx = 1
             
@@ -307,38 +284,30 @@ class ChainReactionGame:
             if not board_lines:
                 raise ValueError("No board data found")
             
-            # Determine board dimensions from the first data line
             first_line_cells = board_lines[0].split()
             cols = len(first_line_cells)
-            rows = len(board_lines)
-            
-            # Create new game instance
+            rows = len(board_lines)   
+            #new game instance
             game = cls(rows, cols)
-            
-            # Parse board state
+            #Parse board state
             for row_idx, line in enumerate(board_lines):
                 cells = line.split()
                 if len(cells) != cols:
                     raise ValueError(f"Inconsistent column count in row {row_idx}")
                 
                 for col_idx, cell_str in enumerate(cells):
-                    # Parse cell format (e.g., "🔵2", "⚫", "🔴1")
                     if cell_str == "⚫":
-                        # Empty cell
                         game.board[row_idx][col_idx].orbs = 0
                         game.board[row_idx][col_idx].player = Player.EMPTY
                     elif cell_str.startswith("🔴"):
-                        # Red player cell
                         orbs = int(cell_str[1:]) if len(cell_str) > 1 else 1
                         game.board[row_idx][col_idx].orbs = orbs
                         game.board[row_idx][col_idx].player = Player.RED
                     elif cell_str.startswith("🔵"):
-                        # Blue player cell
                         orbs = int(cell_str[1:]) if len(cell_str) > 1 else 1
                         game.board[row_idx][col_idx].orbs = orbs
                         game.board[row_idx][col_idx].player = Player.BLUE
                     else:
-                        # Handle numeric format (fallback for compatibility)
                         if cell_str == "0":
                             game.board[row_idx][col_idx].orbs = 0
                             game.board[row_idx][col_idx].player = Player.EMPTY
@@ -352,8 +321,6 @@ class ChainReactionGame:
                             game.board[row_idx][col_idx].player = Player.BLUE
                         else:
                             raise ValueError(f"Invalid cell format: {cell_str}")
-            
-            # Restore game state from metadata if available, otherwise use board analysis
             if metadata:
                 game._restore_game_state_from_metadata(metadata)
             else:
@@ -368,28 +335,19 @@ class ChainReactionGame:
     
     def _restore_game_state_from_metadata(self, metadata: dict):
         """Restore game state from metadata (preferred method)"""
-        # Restore move count
         self.move_count = metadata.get('move_count', 0)
-        
-        # DON'T restore game_over and winner blindly - validate them based on actual board state
-        # This prevents incorrect winner declarations from corrupted save files
-        
-        # Determine current player based on who made the last move
+        #current player based on who made the last move
         last_player_str = metadata.get('last_player')
         if last_player_str:
             last_player = Player.RED if last_player_str == "Red" else Player.BLUE
-            # Current player is the opposite of who made the last move
             self.current_player = Player.BLUE if last_player == Player.RED else Player.RED
         else:
-            # Fallback to board analysis
             self._restore_game_state_from_board()
         
-        # Validate and set game_over and winner based on actual board state
         self._check_win_condition()
     
     def _restore_game_state_from_board(self):
         """Restore game state properties from board data (fallback method)"""
-        # Count total orbs for each player
         red_orbs = 0
         blue_orbs = 0
         
@@ -402,11 +360,7 @@ class ChainReactionGame:
                     blue_orbs += cell.orbs
         
         self.move_count = red_orbs + blue_orbs
-
-        # If move count is even, it's Red's turn; if odd, it's Blue's turn
         self.current_player = Player.RED if self.move_count % 2 == 0 else Player.BLUE
-        
-        # Check win condition
         self._check_win_condition()
         
 class ChainReactionHeuristics:
@@ -429,25 +383,22 @@ class ChainReactionHeuristics:
                 critical = game.get_critical_mass(row, col)
                 
                 if cell.player == player:
-                    # Immediate explosion potential
                     if cell.orbs == critical - 1:
                         score += 50
-                    # Multiplier for chain reaction potential
                     neighbor_bonus = 0
                     for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                         nr, nc = row + dr, col + dc
                         if 0 <= nr < game.rows and 0 <= nc < game.cols:
                             neighbor = game.board[nr][nc]
                             if neighbor.player == opponent and neighbor.orbs > 0:
-                                neighbor_bonus += 15  # Conversion bonus
+                                neighbor_bonus += 15  
                             elif neighbor.player == player:
-                                neighbor_bonus += 5   # Reinforcement bonus
+                                neighbor_bonus += 5   
                     score += neighbor_bonus * (cell.orbs / critical)
                 
                 elif cell.player == opponent:
-                    # Penalize opponent's explosion potential
                     if cell.orbs == critical - 1:
-                        score -= 60  # Higher penalty for opponent threats
+                        score -= 60  
         return score
 
     @staticmethod
@@ -463,9 +414,7 @@ class ChainReactionHeuristics:
                 dist_to_center = abs(row - center_row) + abs(col - center_col)
                 
                 if cell.player == player:
-                    # Center control bonus (quadratic decay)
                     center_bonus = max(0, 20 - 2 * (dist_to_center ** 1.5))
-                    # Choke point bonus (edge cells adjacent to corners)
                     is_choke = False
                     if (row == 0 and col == 1) or (row == 1 and col == 0) or \
                        (row == 0 and col == game.cols-2) or (row == 1 and col == game.cols-1) or \
@@ -486,7 +435,6 @@ class ChainReactionHeuristics:
         opponent = Player.BLUE if player == Player.RED else Player.RED
         frontier_cells = set()
         
-        # Identify frontier (empty cells adjacent to player's cells)
         for row in range(game.rows):
             for col in range(game.cols):
                 if game.board[row][col].player == player:
@@ -496,12 +444,10 @@ class ChainReactionHeuristics:
                             if game.board[nr][nc].player == Player.EMPTY:
                                 frontier_cells.add((nr, nc))
         
-        # Evaluate each frontier cell's potential
         for row, col in frontier_cells:
             safety_score = 0
             strategic_value = 0
             
-            # Check safety (opponent's ability to attack)
             for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                 nr, nc = row + dr, col + dc
                 if 0 <= nr < game.rows and 0 <= nc < game.cols:
@@ -510,7 +456,6 @@ class ChainReactionHeuristics:
                         critical = game.get_critical_mass(nr, nc)
                         safety_score -= (neighbor.orbs / critical) * 40
             
-            # Strategic value based on position
             if (row == 0 or row == game.rows-1) and (col == 0 or col == game.cols-1):
                 strategic_value = 25  # Corner
             elif row == 0 or row == game.rows-1 or col == 0 or col == game.cols-1:
@@ -539,7 +484,7 @@ class ChainReactionHeuristics:
                     # Immediate threats (will explode next turn)
                     if cell.orbs == critical - 1:
                         immediate_threats += 1
-                        # Evaluate our ability to block
+                        # Evaluating ability to block
                         can_block = False
                         for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                             nr, nc = row + dr, col + dc
@@ -555,7 +500,7 @@ class ChainReactionHeuristics:
                         score -= 20 * (cell.orbs / critical)
                 
                 elif cell.player == player:
-                    # Our defensive formations
+                    #defensive formations
                     if cell.orbs > 0:
                         defensive_strength = 0
                         for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
@@ -566,7 +511,7 @@ class ChainReactionHeuristics:
                                     defensive_strength += neighbor.orbs
                         score += min(30, defensive_strength * 2)
         
-        # Global threat assessment
+        #Global threat assessment
         threat_ratio = (immediate_threats * 3 + potential_threats) / max(1, game.rows * game.cols)
         score -= 100 * threat_ratio
         
@@ -578,7 +523,6 @@ class ChainReactionHeuristics:
         score = 0
         opponent = Player.BLUE if player == Player.RED else Player.RED
         
-        # Count forcing moves (moves that create immediate threats)
         player_forcing_moves = 0
         opponent_forcing_moves = 0
         
@@ -592,19 +536,19 @@ class ChainReactionHeuristics:
                 elif cell.player == opponent and cell.orbs == critical - 2:
                     opponent_forcing_moves += 1
         
-        # Evaluate board development
+        #evaluate board development
         player_development = sum(cell.orbs for row in game.board for cell in row if cell.player == player)
         opponent_development = sum(cell.orbs for row in game.board for cell in row if cell.player == opponent)
         development_ratio = player_development / max(1, opponent_development)
         
-        # Calculate tempo score
+        #calculate tempo score
         score += (player_forcing_moves - opponent_forcing_moves) * 40
         score += math.log(development_ratio) * 30 if development_ratio > 0 else 0
         
-        # Late-game adjustment
+        #Late-game adjustment
         total_orbs = player_development + opponent_development
         if total_orbs > (game.rows * game.cols * 2):
-            # In endgame, prioritize orb count and explosion potential
+            #In endgame, prioritize orb count and explosion potential
             score += ChainReactionHeuristics.orb_count_heuristic(game, player) * 0.5
             score += ChainReactionHeuristics.explosion_potential_heuristic(game, player) * 0.3
         
@@ -613,7 +557,7 @@ class ChainReactionHeuristics:
     @staticmethod
     def combined_heuristic_v2(game: ChainReactionGame, player: Player) -> float:
         """Sophisticated combination of all heuristics with dynamic weights"""
-        # Early game weights
+        #Early game weights
         if game.move_count < 10:
             weights = {
                 'strategic_control': 0.4,
@@ -621,7 +565,7 @@ class ChainReactionHeuristics:
                 'tempo': 0.2,
                 'threat': 0.1
             }
-        # Mid game weights
+        #Mid game weights
         elif game.move_count < 30:
             weights = {
                 'explosion': 0.3,
@@ -629,7 +573,7 @@ class ChainReactionHeuristics:
                 'strategic_control': 0.2,
                 'tempo': 0.2
             }
-        # End game weights
+        #End game weights
         else:
             weights = {
                 'explosion': 0.5,
@@ -637,7 +581,7 @@ class ChainReactionHeuristics:
                 'orb_count': 0.2
             }
         
-        # Calculate weighted sum
+        #weighted sum
         score = 0
         score += weights.get('explosion', 0) * ChainReactionHeuristics.explosion_potential_heuristic(game, player)
         score += weights.get('strategic_control', 0) * ChainReactionHeuristics.strategic_control_heuristic(game, player)
@@ -671,23 +615,22 @@ class MinimaxAI:
                       alpha: float = float('-inf'), beta: float = float('inf'), 
                       maximizing: bool = True) -> Tuple[float, Optional[Tuple[int, int]]]:
         self.nodes_evaluated += 1
-        
-        # Time and node limits for safety
+    
         if (time.time() - self.search_start_time > self.max_search_time or 
             self.nodes_evaluated > self.max_nodes):
             return self.heuristic_func(game, self.player), None
         
-        # Generate state key for caching
+        #state key for caching
         state_key = self.get_game_state_key(game)
         
-        # Check transposition table
+        #check transposition table
         if state_key in self.transposition_table:
             cached_score, cached_depth, cached_move = self.transposition_table[state_key]
             if cached_depth >= depth:
                 self.cache_hits += 1
                 return cached_score, cached_move
         
-        # Base cases: depth 0 or game over
+        #base cases: 
         if depth == 0 or game.game_over:
             if game.game_over:
                 score = 1000 if game.winner == self.player else (-1000 if game.winner is not None else 0)
@@ -696,21 +639,19 @@ class MinimaxAI:
             self.transposition_table[state_key] = (score, depth, None)
             return score, None
         
-        # Determine current player
         current_player = self.player if maximizing else (Player.BLUE if self.player == Player.RED else Player.RED)
         valid_moves = game.get_valid_moves(current_player)
         
-        # No valid moves - this is a terminal position, return win/loss score
         if not valid_moves:
             # If current player has no moves, they lose
             if current_player == self.player:
-                score = -1000  # We lose
+                score = -1000  
             else:
-                score = 1000   # Opponent loses, we win
+                score = 1000   
             self.transposition_table[state_key] = (score, depth, None)
             return score, None
         
-        # Order moves for better pruning
+        # Ordering moves for better pruning
         valid_moves = self.order_moves(game, valid_moves)
         best_move = None
         moves_evaluated = 0
@@ -724,12 +665,9 @@ class MinimaxAI:
                     
                 self.total_moves_considered += 1
                 moves_evaluated += 1
-                
-                # Make move on copy
                 game_copy = game.copy()
                 game_copy.make_move(move[0], move[1], current_player)
                 
-                # Recursive call
                 eval_score, _ = self.minimax_search(game_copy, depth - 1, alpha, beta, False)
                 
                 if eval_score > max_eval:
@@ -753,11 +691,8 @@ class MinimaxAI:
                 self.total_moves_considered += 1
                 moves_evaluated += 1
                 
-                # Make move on copy
                 game_copy = game.copy()
                 game_copy.make_move(move[0], move[1], current_player)
-                
-                # Recursive call
                 eval_score, _ = self.minimax_search(game_copy, depth - 1, alpha, beta, True)
                 
                 if eval_score < min_eval:
@@ -814,11 +749,6 @@ class RandomAI:
         valid_moves = game.get_valid_moves(self.player)
         if not valid_moves:
             return None
-        
-        # Remove artificial delay for web interface to match direct execution speed
-        # time.sleep(0.1)  # Removed: No delay needed for web interface
-        
-        # Select a random move
         move = random.choice(valid_moves)
         print(f"🎲 Random AI selected move: {move[0]}, {move[1]}")
         return move
@@ -829,15 +759,14 @@ class GameController:
         self.ai_red = None
         self.ai_blue = None
         self.start_time = None
-        self.game_state_file = "improved_gamestate.txt"  # File-based backend
+        self.game_state_file = "improved_gamestate.txt"  
     
     def get_game_configuration(self) -> Tuple[int, int, int, AIType, AIType, GameMode, Optional[callable], Optional[callable]]:
         """Get game configuration from user"""
         print("🎮 Improved Chain Reaction Game")
         # print("🚀 Features: Game-over detection during explosions (no infinite loops!)")
         print("=" * 60)
-        
-        # Get grid size
+       
         print("\n🔲 Grid Size Configuration:")
         while True:
             try:
@@ -859,7 +788,6 @@ class GameController:
             except ValueError:
                 print("Invalid input. Please enter a number.")
         
-        # Get game mode first to determine what AI config we need
         print("\n🎯 Game Mode Selection:")
         print("1. User vs User")
         print("2. User vs AI")
@@ -875,7 +803,6 @@ class GameController:
             except ValueError:
                 print("Invalid input. Please enter a number.")
         
-        # Get AI difficulty (only for smart AI)
         print("\n🤖 Smart AI Difficulty Configuration:")
         print("2 - Easy (Fast)")
         print("3 - Medium (Balanced)")
@@ -891,7 +818,6 @@ class GameController:
             except ValueError:
                 print("Invalid input. Please enter a number.")
         
-        # Configure AI types based on game mode
         def get_ai_type(player_name: str) -> AIType:
             print(f"\n{player_name} AI Type:")
             print("1 - Smart AI (Strategic Minimax)")
@@ -949,21 +875,19 @@ class GameController:
             blue_heuristic = None
         elif mode_choice == 2:  # User vs AI  
             print("\n🤖 AI Opponent Configuration:")
-            red_ai_type = None  # Red is human, so this won't be used
+            red_ai_type = None  
             blue_ai_type = get_ai_type("Blue")
             red_heuristic = None
             
-            # Get heuristic for Blue AI if it's Smart AI
             if blue_ai_type == AIType.SMART:
                 blue_heuristic = get_heuristic_choice("Blue")
             else:
                 blue_heuristic = None
-        else:  # AI vs AI
+        else:  
             print("\n🤖 AI Configuration:")
             red_ai_type = get_ai_type("Red")
             blue_ai_type = get_ai_type("Blue")
             
-            # Get heuristics for Smart AIs
             if red_ai_type == AIType.SMART:
                 red_heuristic = get_heuristic_choice("Red")
             else:
@@ -980,9 +904,7 @@ class GameController:
         """Initialize game with specified configuration"""
         self.game = ChainReactionGame(rows, cols)
         
-        # Create AI instances based on type selection
         if red_ai_type == AIType.SMART:
-            # Use user-selected heuristic or default to growth_potential_heuristic
             heuristic = red_heuristic or ChainReactionHeuristics.growth_potential_heuristic
             self.ai_red = MinimaxAI(Player.RED, depth=depth, heuristic_func=heuristic)
         elif red_ai_type == AIType.RANDOM:
@@ -991,7 +913,6 @@ class GameController:
             self.ai_red = None
             
         if blue_ai_type == AIType.SMART:
-            # Use user-selected heuristic or default to threat_analysis_heuristic
             heuristic = blue_heuristic or ChainReactionHeuristics.threat_analysis_heuristic
             self.ai_blue = MinimaxAI(Player.BLUE, depth=depth, heuristic_func=heuristic)
         elif blue_ai_type == AIType.RANDOM:
@@ -1035,8 +956,6 @@ class GameController:
                 print(f"\n{player.value} player's turn")
                 move_input = input("Enter move as 'row col' (0-indexed, e.g., '0 1'): ")
                 row, col = map(int, move_input.strip().split())
-                
-                # Immediate validation for better user experience
                 if not (0 <= row < self.game.rows and 0 <= col < self.game.cols):
                     print(f"❌ Invalid position! Row must be 0-{self.game.rows-1}, column must be 0-{self.game.cols-1}")
                     continue
@@ -1060,22 +979,18 @@ class GameController:
         self.initialize_game(rows, cols, depth, red_ai_type, blue_ai_type, red_heuristic, blue_heuristic)
         
         self.start_time = time.time()
-        
-        # Save initial game state to file
+        #save initial game state to file
         self.game.save_to_file(self.game_state_file, "Game Start")
         
         print(f"\n🚀 Starting {mode.name.replace('_', ' ').title()} game!")
         print("=" * 60)
         
         while True:
-            # CRITICAL: Always read current state from file before each move
             try:
                 self.game = ChainReactionGame.load_from_file(self.game_state_file)
             except (FileNotFoundError, ValueError) as e:
                 print(f"❌ Error loading game state: {e}")
                 break
-            
-            # Check if game is over
             if self.game.game_over:
                 break
                 
@@ -1084,26 +999,19 @@ class GameController:
             current_player = self.game.current_player
             
             if mode == GameMode.USER_VS_USER:
-                # Both players are human
                 row, col = self.get_user_move(current_player)
-                # Move is pre-validated, so this should always succeed
                 self.game.make_move(row, col, current_player)
-                # Save game state after human move
                 move_type = f"Human Move ({current_player.value})"
                 self.game.save_to_file(self.game_state_file, move_type)
                     
             elif mode == GameMode.USER_VS_AI:
-                # Red is human, Blue is AI
                 if current_player == Player.RED:
                     row, col = self.get_user_move(current_player)
-                    # Move is pre-validated, so this should always succeed
                     self.game.make_move(row, col, current_player)
-                    # Save game state after human move
                     self.game.save_to_file(self.game_state_file, "Human Move")
                 else:
                     ai_type_name = blue_ai_type.value
                     print(f"\n🤖 {ai_type_name} ({current_player.value}) is thinking...")
-                    # Reinitialize AI with current game state (since we loaded from file)
                     if blue_ai_type == AIType.SMART:
                         heuristic = blue_heuristic or ChainReactionHeuristics.threat_analysis_heuristic
                         ai_instance = MinimaxAI(Player.BLUE, depth, heuristic_func=heuristic)
@@ -1113,14 +1021,12 @@ class GameController:
                     move = ai_instance.get_best_move(self.game)
                     if move and self.game.make_move(move[0], move[1], current_player):
                         print(f"{ai_type_name} plays: {move[0]}, {move[1]}")
-                        # Save game state after AI move
                         self.game.save_to_file(self.game_state_file, f"{ai_type_name} Move")
                     else:
                         print(f"{ai_type_name} could not find a valid move!")
                         break
                         
             elif mode == GameMode.AI_VS_AI:
-                # Both players are AI - reinitialize AI instances with current game state
                 if current_player == Player.RED:
                     ai_type_name = red_ai_type.value
                     if red_ai_type == AIType.SMART:
@@ -1141,22 +1047,17 @@ class GameController:
                 
                 if move and self.game.make_move(move[0], move[1], current_player):
                     print(f"{ai_type_name} ({current_player.value}) plays: {move[0]}, {move[1]}")
-                    # Save game state after AI move
                     ai_move_type = f"{ai_type_name} Move ({current_player.value})"
                     self.game.save_to_file(self.game_state_file, ai_move_type)
-                    # Remove artificial delay for AI vs AI in web interface to match direct execution speed
-                    # time.sleep(0.5)  # Removed: No delay needed for web interface
                 else:
                     print(f"{ai_type_name} ({current_player.value}) could not find a valid move!")
                     break
-        
-        # Ensure we have the final state loaded
+        #final state loaded
         try:
             self.game = ChainReactionGame.load_from_file(self.game_state_file)
         except (FileNotFoundError, ValueError):
-            pass  # Use current state if loading fails
-        
-        # Game over - save final state
+            pass  #current state if loading fails
+        # Game over
         self.game.save_to_file(self.game_state_file, "Game Over")
         
         self.game.display_board()

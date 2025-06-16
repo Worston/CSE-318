@@ -1,1 +1,1 @@
-{"rows":6,"cols":6,"mode":"User vs AI","aiType":"Smart","difficulty":"Medium","firstPlayer":"Human","heuristic":"combined_v2"}
+{"rows":8,"cols":7,"mode":"AI vs AI","redAI":{"type":"Smart","difficulty":"Easy","heuristic":"threat_analysis"},"blueAI":{"type":"Smart","difficulty":"Hard","heuristic":"tempo"},"firstPlayer":"Red"}

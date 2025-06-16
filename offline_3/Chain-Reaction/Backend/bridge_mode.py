@@ -1,12 +1,8 @@
-# Bridge mode addition for improved_chain_reaction.py
-# This file extends the existing backend to support communication with the frontend
-
 import json
 import sys
 import os
 import time
 from improved_chain_reaction import *
-
 class BridgeGameController(GameController):
     def __init__(self):
         super().__init__()
@@ -28,14 +24,12 @@ class BridgeGameController(GameController):
     def process_move_request(self):
         """Process a move request from the frontend"""
         try:
-            # Read current game state
             if not os.path.exists(self.game_state_file):
                 print("Game state file not found", file=sys.stderr)
                 return False
                 
             self.game = ChainReactionGame.load_from_file(self.game_state_file)
             
-            # Check if it's an AI turn request
             with open(self.game_state_file, 'r') as f:
                 content = f.read()
                 if "AI Turn Request:" in content:
@@ -51,20 +45,17 @@ class BridgeGameController(GameController):
         try:
             if not self.game:
                 return False
-                
-            # Determine which AI to use
+            # which AI to use
             config = self.load_config()
             if not config:
                 return False
                 
             current_player = self.game.current_player
             
-            # Create appropriate AI based on configuration format
-            ai_player = current_player  # Use the actual current player from game state
-            
-            # Handle AI vs AI mode with individual AI configurations
+            ai_player = current_player  
+
             if config.get('mode') == 'AI vs AI' and 'redAI' in config and 'blueAI' in config:
-                # Use specific AI configuration based on current player
+                #specific AI configuration based on current player
                 if current_player.value == 'Red':
                     ai_config = config['redAI']
                 else:
@@ -77,7 +68,7 @@ class BridgeGameController(GameController):
                     heuristic_func = self.get_heuristic_function(ai_config.get('heuristic', 'combined_v2'))
                     ai = MinimaxAI(ai_player, depth, heuristic_func=heuristic_func)
             else:
-                # Handle legacy single AI configuration
+                #single AI configuration
                 if config.get('aiType') == 'Random':
                     ai = RandomAI(ai_player)
                 else:
@@ -85,14 +76,14 @@ class BridgeGameController(GameController):
                     heuristic_func = self.get_heuristic_function(config.get('heuristic', 'combined_v2'))
                     ai = MinimaxAI(ai_player, depth, heuristic_func=heuristic_func)
             
-            # Get AI move
+            #AI move
             move = ai.get_best_move(self.game)
             if move:
                 row, col = move
                 success = self.game.make_move(row, col, current_player)
                 
                 if success:
-                    # Save updated game state
+                    #saving updated game state
                     move_type = f"AI {config.get('aiType', 'Smart')} Move"
                     self.game.save_to_file(self.game_state_file, move_type)
                     return True
@@ -130,7 +121,7 @@ class BridgeGameController(GameController):
         
         while True:
             try:
-                # Wait for commands from the bridge server
+                #commands from the bridge server
                 line = sys.stdin.readline().strip()
                 
                 if line == 'ai_move':
@@ -167,7 +158,7 @@ class BridgeGameController(GameController):
     def process_human_move(self):
         """Process a human move request from the frontend"""
         try:
-            # Read the game state file
+            #Read the game state 
             if not os.path.exists(self.game_state_file):
                 print("Game state file not found", file=sys.stderr)
                 return False
@@ -175,7 +166,7 @@ class BridgeGameController(GameController):
             with open(self.game_state_file, 'r') as f:
                 content = f.read()
             
-            # Parse the human move request
+            #Parse the human move
             if "Human Move Request:" not in content:
                 print("No human move request found", file=sys.stderr)
                 return False
@@ -197,35 +188,32 @@ class BridgeGameController(GameController):
                 print("Invalid human move request format", file=sys.stderr)
                 return False
             
-            # Convert player string to Player enum
             from improved_chain_reaction import Player, ChainReactionGame
             player = Player.RED if player_str == 'RED' else Player.BLUE
             
             # Load or create game instance
             if self.game is None:
-                # Try to use the game engine's load method first
                 try:
-                    # Write the content to a temporary format that the game engine can read
+                    #temporary format that the game engine can read
                     temp_content = self.convert_to_game_engine_format(content)
                     temp_file = self.game_state_file + '.temp'
                     with open(temp_file, 'w') as f:
                         f.write(temp_content)
                     self.game = ChainReactionGame.load_from_file(temp_file)
-                    # Clean up temporary file
                     try:
                         os.remove(temp_file)
                     except:
                         pass
                 except Exception as e:
                     print(f"Failed to load using game engine method: {e}", file=sys.stderr)
-                    # Fallback to manual parsing
+                    #manual parsing
                     self.game = self.parse_game_state_from_file(content)
             
             if self.game is None:
                 print("Failed to load game state", file=sys.stderr)
                 return False
             
-            # Make the move using the game engine
+            #Make the move 
             print(f"Making move: {player_str} at ({row}, {col}), current player: {self.game.current_player.value}", file=sys.stderr)
             success = self.game.make_move(row, col, player)
             
@@ -248,19 +236,16 @@ class BridgeGameController(GameController):
             return False
     
     def convert_to_game_engine_format(self, content):
-        """Convert our format to the game engine's expected format"""
+        """Convert frontend format to the game engine's expected format"""
         lines = content.strip().split('\n')
-        
-        # Start with the proper header
         result_lines = ["Game State:"]
         
-        # Find and copy metadata
+        #Find and copy metadata
         for line in lines:
             if line.startswith('LastPlayer:') or line.startswith('MoveCount:') or line.startswith('GameOver:') or line.startswith('Winner:'):
                 result_lines.append(line)
             elif line.startswith('Board:'):
                 result_lines.append(line)
-                # Copy all board lines
                 board_idx = lines.index(line)
                 for board_line in lines[board_idx + 1:]:
                     if board_line.strip():
@@ -276,13 +261,11 @@ class BridgeGameController(GameController):
             
             lines = content.strip().split('\n')
             board_start = -1
-            
-            # Find where the board starts
+            #where the board starts
             for i, line in enumerate(lines):
                 if line.strip() == 'Board:':
                     board_start = i + 1
                     break
-            
             if board_start == -1:
                 print("Board section not found in file", file=sys.stderr)
                 return None
@@ -297,16 +280,12 @@ class BridgeGameController(GameController):
             if not board_lines:
                 print("No board data found", file=sys.stderr)
                 return None
-            
-            # CRITICAL FIX: Get board dimensions from config file, NOT from parsing
-            # This prevents dimension corruption that was causing 3x3 to become 4x3
             config = self.load_config()
             if config and 'rows' in config and 'cols' in config:
                 rows = config['rows']
                 cols = config['cols']
                 print(f"Using config dimensions: {rows}x{cols}", file=sys.stderr)
-                
-                # Validate that we don't have more board lines than expected
+            
                 if len(board_lines) > rows:
                     print(f"WARNING: Board has {len(board_lines)} lines but config specifies {rows} rows. Truncating to match config.", file=sys.stderr)
                     board_lines = board_lines[:rows]
@@ -315,17 +294,14 @@ class BridgeGameController(GameController):
                     while len(board_lines) < rows:
                         board_lines.append('⚫ ' * cols)
             else:
-                # Fallback to parsing dimensions (original behavior)
                 rows = len(board_lines)
                 cols = len(board_lines[0].split())
                 print(f"WARNING: Config not available, using parsed dimensions: {rows}x{cols}", file=sys.stderr)
             
-            # Create game instance
             game = ChainReactionGame(rows, cols)
-            # Set interactive mode for explosion delays
             game.interactive_mode = True
             
-            # Parse each cell (only up to the expected dimensions)
+            #Parse each cell 
             for r in range(min(len(board_lines), rows)):
                 line = board_lines[r]
                 cells = line.split()
@@ -343,10 +319,9 @@ class BridgeGameController(GameController):
                         game.board[r][c].orbs = orbs
                         game.board[r][c].player = Player.BLUE
             
-            # Set move count and other game state
+            #Set game state
             for line in lines:
                 if line.startswith('MoveCount:'):
-                    # Use total orbs count as move count (this represents current game progress)
                     game.move_count = int(line.split(': ')[1])
                 elif line.startswith('LastPlayer:'):
                     last_player = line.split(': ')[1].strip()
@@ -354,8 +329,8 @@ class BridgeGameController(GameController):
                         game.current_player = Player.BLUE
                     elif last_player == 'BLUE':
                         game.current_player = Player.RED
-                    else:  # EMPTY or first move
-                        game.current_player = Player.RED  # Default to RED for first move
+                    else:  #EMPTY or first move
+                        game.current_player = Player.RED  #Default to RED for first move
             
             print(f"Parsed game state: move_count={game.move_count}, current_player={game.current_player.value}", file=sys.stderr)
             return game
@@ -370,10 +345,7 @@ class BridgeGameController(GameController):
             if self.game is None:
                 return False
             
-            # Use the game engine's built-in save method
             self.game.save_to_file(self.game_state_file, "Move Processed")
-            
-            # Get total orbs for debugging
             scores = self.game.get_score()
             total_orbs = scores[Player.RED] + scores[Player.BLUE]
             
@@ -387,7 +359,6 @@ class BridgeGameController(GameController):
     def process_ai_move(self):
         """Process an AI move request from the frontend"""
         try:
-            # Read the game state file
             if not os.path.exists(self.game_state_file):
                 print("Game state file not found", file=sys.stderr)
                 return False
@@ -395,36 +366,29 @@ class BridgeGameController(GameController):
             with open(self.game_state_file, 'r') as f:
                 content = f.read()
             
-            # Check for AI move request
             if "AI_MOVE_REQUEST:" not in content:
                 print("No AI move request found", file=sys.stderr)
                 return False
             
-            # Load or create game instance from current state
             if self.game is None:
-                # Try to use the game engine's load method first
                 try:
-                    # Write the content to a temporary format that the game engine can read
                     temp_content = self.convert_to_game_engine_format(content)
                     temp_file = self.game_state_file + '.temp'
                     with open(temp_file, 'w') as f:
                         f.write(temp_content)
                     self.game = ChainReactionGame.load_from_file(temp_file)
-                    # Clean up temporary file
                     try:
                         os.remove(temp_file)
                     except:
                         pass
                 except Exception as e:
                     print(f"Failed to load using game engine method: {e}", file=sys.stderr)
-                    # Fallback to manual parsing
                     self.game = self.parse_game_state_from_file(content)
             
             if self.game is None:
                 print("Failed to load game state for AI move", file=sys.stderr)
                 return False
             
-            # Get configuration
             config = self.load_config()
             if not config:
                 print("Failed to load configuration for AI move", file=sys.stderr)
@@ -432,13 +396,10 @@ class BridgeGameController(GameController):
                 
             current_player = self.game.current_player
             print(f"AI move: current player is {current_player.value}", file=sys.stderr)
+    
+            ai_player = current_player  #actual current player from game state
             
-            # Create appropriate AI based on configuration format
-            ai_player = current_player  # Use the actual current player from game state
-            
-            # Handle AI vs AI mode with individual AI configurations
             if config.get('mode') == 'AI vs AI' and 'redAI' in config and 'blueAI' in config:
-                # Use specific AI configuration based on current player
                 if current_player.value == 'Red':
                     ai_config = config['redAI']
                 else:
@@ -455,7 +416,6 @@ class BridgeGameController(GameController):
                     ai = MinimaxAI(ai_player, depth, heuristic_func=heuristic_func)
                     print(f"Created Minimax AI for {ai_player.value} with depth {depth} and heuristic {ai_config.get('heuristic')}", file=sys.stderr)
             else:
-                # Handle legacy single AI configuration
                 if config.get('aiType') == 'Random':
                     print(f"Using legacy Random AI config (no difficulty or heuristic needed)", file=sys.stderr)
                     ai = RandomAI(ai_player)
@@ -466,7 +426,6 @@ class BridgeGameController(GameController):
                     ai = MinimaxAI(ai_player, depth, heuristic_func=heuristic_func)
                     print(f"Created Minimax AI for {ai_player.value} with depth {depth}", file=sys.stderr)
             
-            # Get AI move
             print(f"Getting AI move for {ai_player.value}...", file=sys.stderr)
             move = ai.get_best_move(self.game)
             if move:
@@ -475,7 +434,6 @@ class BridgeGameController(GameController):
                 success = self.game.make_move(row, col, current_player)
                 
                 if success:
-                    # Save updated game state
                     move_type = f"{config.get('aiType', 'Smart')} AI Move"
                     self.game.save_to_file(self.game_state_file, move_type)
                     print(f"AI move successful: {ai_player.value} at ({row}, {col})", file=sys.stderr)
@@ -496,11 +454,9 @@ class BridgeGameController(GameController):
 def main():
     """Main entry point - check for bridge mode"""
     if len(sys.argv) > 1 and sys.argv[1] == '--bridge-mode':
-        # Run in bridge mode
         controller = BridgeGameController()
         controller.run_bridge_mode()
     else:
-        # Run normal game mode
         controller = GameController()
         controller.play_game()
 

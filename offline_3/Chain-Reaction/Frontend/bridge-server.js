@@ -1,6 +1,3 @@
-// Node.js bridge server for Chain Reaction game
-// Handles file I/O and Python backend communication
-
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
@@ -26,8 +23,8 @@ const GAME_STATE_FILE = path.join(BACKEND_DIR, 'improved_gamestate.txt');
 const PYTHON_SCRIPT = path.join(BACKEND_DIR, 'bridge_mode.py');
 
 let backendProcess = null;
-let gameConfig = null; // Store original game configuration
-let fileWriteMutex = false; // Prevent concurrent file writes
+let gameConfig = null; //store original game configuration
+let fileWriteMutex = false; //prevent concurrent file writes
 
 console.log('Bridge server paths:');
 console.log('BACKEND_DIR:', BACKEND_DIR);
@@ -39,23 +36,22 @@ console.log('PYTHON_SCRIPT:', PYTHON_SCRIPT);
 // Initialize new game
 app.post('/api/game/init', async (req, res) => {
   try {
-    const config = req.body; // Frontend sends config directly, not nested
+    const config = req.body; 
     console.log('Initializing NEW game with config:', config);
     
-    // CRITICAL: Stop any existing backend process to prevent state carryover
     if (backendProcess) {
       console.log('Stopping existing backend process for new game...');
       backendProcess.kill('SIGTERM');
       backendProcess = null;
-      // Give the process time to terminate
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased wait time
+      //time to terminate
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
     }
     
-    // Store the original game configuration
+    //store the original game configuration
     gameConfig = config;
     console.log('Stored new game config:', gameConfig);
     
-    // Clear any existing game state file first
+    //clear any existing game state file first
     try {
       const tempState = `Game Reset:
 LastPlayer: EMPTY
@@ -70,7 +66,7 @@ Board:
       console.log('No previous state to clear:', error.message);
     }
     
-    // Validate config
+    //validate config
     if (!config || !config.rows || !config.cols) {
       return res.status(400).json({ 
         success: false, 
@@ -79,7 +75,7 @@ Board:
       });
     }
     
-    // Create initial game state
+    //create initial game state
     const rows = config.rows;
     const cols = config.cols;
     const emptyBoard = Array(rows).fill(null).map(() => 
@@ -96,17 +92,13 @@ ${emptyBoard}`;
 
     await safeWriteFile(GAME_STATE_FILE, initialState);
     console.log('Game state file created');
-    
-    // Wait a moment to ensure file is written
+    //waiting a moment to ensure file is written
     await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Pre-warm backend process for faster first move
+    //pre-warm backend process for faster first move
     await startPythonBackend(config);
     console.log('Backend process pre-warmed for faster first move');
-    
-    // Give backend time to read the initial state
+    //enough time to read the initial state
     await new Promise(resolve => setTimeout(resolve, 200));
-
     res.json({ success: true, message: 'Game initialized' });
   } catch (error) {
     console.error('Failed to initialize game:', error);
@@ -131,8 +123,7 @@ app.post('/api/game/move', async (req, res) => {
   try {
     const { board, row, col, currentPlayer } = req.body;
     console.log(`Processing move: ${currentPlayer} at ${row},${col}`);
-    
-    // Calculate total orbs on the board for validation
+
     let totalOrbs = 0;
     for (const boardRow of board) {
       for (const cell of boardRow) {
@@ -141,11 +132,6 @@ app.post('/api/game/move', async (req, res) => {
     }
     
     console.log(`Current total orbs on board: ${totalOrbs}`);
-    
-    // For human vs human mode, we need to process moves through the Python backend
-    // to handle explosions and game logic properly
-    
-    // First, convert the frontend board to the backend format and write to file
     const boardStr = board.map(boardRow => 
       boardRow.map(cell => {
         if (cell.player === 'EMPTY') return '⚫';
@@ -167,11 +153,9 @@ ${boardStr}`;
 
     await safeWriteFile(GAME_STATE_FILE, gameStateContent);
     console.log('Move written to game state file for processing');
-    
-    // Start Python backend if not already running
+  
     if (!backendProcess) {
       console.log('Starting Python backend for move processing...');
-      // Use stored game configuration instead of inferring from board
       const configToUse = gameConfig || {
         mode: 'USER_VS_USER',
         rows: board.length,
@@ -179,11 +163,9 @@ ${boardStr}`;
       };
       console.log('Using game config for backend:', configToUse);
       await startPythonBackend(configToUse);
-      
-      // Reduced wait time since backend is pre-warmed during initialization
       await new Promise(resolve => setTimeout(resolve, 500));
     } else {
-      // Verify that the backend process is still alive and responsive
+      //verify that the backend process 
       if (backendProcess.killed || !backendProcess.pid) {
         console.log('Backend process is dead, restarting...');
         backendProcess = null;
@@ -197,7 +179,6 @@ ${boardStr}`;
       }
     }
     
-    // Signal Python backend to process the human move
     if (backendProcess && backendProcess.stdin) {
       backendProcess.stdin.write('process_move\n');
       console.log('Sent process_move command to backend');
@@ -206,17 +187,15 @@ ${boardStr}`;
       return res.json({ success: true, message: 'Move recorded (no backend processing)' });
     }
 
-    // Wait for backend to process the move and update the file
     let attempts = 0;
     const maxAttempts = 40; // Increased attempts but shorter delays
     
     while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 250ms to 100ms
+      await new Promise(resolve => setTimeout(resolve, 150)); 
       
       try {
         const updatedContent = await fs.readFile(GAME_STATE_FILE, 'utf8');
         
-        // Check if the content changed from our input (backend processed it)
         if (updatedContent !== gameStateContent && 
             (updatedContent.includes('Move Processed') ||
              updatedContent.includes('Game Over') ||
@@ -231,14 +210,12 @@ ${boardStr}`;
       }
       
       attempts++;
-      
-      // Log progress every 20 attempts (reduced frequency)
+      // Log progress every 20 attempts 
       if (attempts % 20 === 0) {
         console.log(`Waiting for backend processing... attempt ${attempts}/${maxAttempts}`);
       }
     }
-
-    // Fallback: return the original state if backend doesn't respond
+    //return the original state if backend doesn't respond
     console.log('Backend processing timeout, returning original state');
     res.json({ success: true, message: 'Move recorded (backend timeout)' });
     
@@ -248,13 +225,12 @@ ${boardStr}`;
   }
 });
 
-// AI move endpoint for Human vs AI mode
+//AI move endpoint for Human vs AI mode
 app.post('/api/game/ai-move', async (req, res) => {
   try {
     const { player } = req.body;
     console.log(`Processing AI move for player: ${player}`);
-    
-    // Ensure we have a game configuration
+  
     if (!gameConfig) {
       return res.status(400).json({ 
         success: false, 
@@ -270,13 +246,10 @@ app.post('/api/game/ai-move', async (req, res) => {
         error: 'AI moves are only allowed in Human vs AI or AI vs AI mode' 
       });
     }
-    
-    // Read current game state
+ 
     const currentContent = await fs.readFile(GAME_STATE_FILE, 'utf8');
     const currentGameState = parseGameState(currentContent);
-    
-    // For AI vs AI mode, allow any AI player to move if it's their turn
-    // For Human vs AI mode, verify it's actually the AI's turn
+
     if (gameConfig.mode === 'USER_VS_AI' || gameConfig.mode === 'User vs AI') {
       const expectedAIPlayer = (gameConfig.firstPlayer === 'AI') ? 'RED' : 'BLUE';
       if (currentGameState.currentPlayer !== expectedAIPlayer) {
@@ -286,7 +259,6 @@ app.post('/api/game/ai-move', async (req, res) => {
         });
       }
     } else if (gameConfig.mode === 'AI_VS_AI' || gameConfig.mode === 'AI vs AI') {
-      // In AI vs AI mode, verify the requested player matches the current player
       if (currentGameState.currentPlayer !== player) {
         return res.status(400).json({ 
           success: false, 
@@ -295,22 +267,19 @@ app.post('/api/game/ai-move', async (req, res) => {
       }
     }
     
-    // Check if game is already over
     if (currentGameState.gameOver) {
       return res.status(400).json({ 
         success: false, 
         error: 'Game is already over' 
       });
     }
-    
-    // Start backend if not running
+    //start backend if not running
     if (!backendProcess || backendProcess.killed) {
       console.log('Starting backend for AI move...');
       await startPythonBackend(gameConfig);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
-    // Request AI move from backend
+    //request AI move from backend
     const aiMoveRequest = `AI_MOVE_REQUEST:${player}\n`;
     
     // Write the AI move request to the game state file
@@ -326,10 +295,9 @@ app.post('/api/game/ai-move', async (req, res) => {
         error: 'Backend process not available' 
       });
     }
-    
-    // Wait for backend to process the AI move
+ 
     let attempts = 0;
-    const maxAttempts = 50; // Allow more time for AI thinking
+    const maxAttempts = 250; // Allow more time for AI thinking
     
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 200)); // 200ms intervals
@@ -338,7 +306,7 @@ app.post('/api/game/ai-move', async (req, res) => {
       try {
         const updatedContent = await fs.readFile(GAME_STATE_FILE, 'utf8');
         
-        // Check if the AI has made a move (content changed and no AI_MOVE_REQUEST)
+        //Check if the AI has made a move (content changed and no AI_MOVE_REQUEST)
         if (updatedContent !== currentContent && 
             !updatedContent.includes('AI_MOVE_REQUEST') &&
             (updatedContent.includes('AI Move') || 
@@ -359,15 +327,12 @@ app.post('/api/game/ai-move', async (req, res) => {
         console.error('Error reading updated game state:', error);
       }
     }
-    
-    // Timeout - try using the fallback random AI logic
     console.log('AI move timeout - using fallback random AI logic');
     
     try {
       const fallbackContent = await fs.readFile(GAME_STATE_FILE, 'utf8');
       const fallbackGameState = parseGameState(fallbackContent);
-      
-      // Use bridge server's random AI as fallback
+
       if (gameConfig.aiType === 'RANDOM') {
         const randomMove = generateRandomMove(fallbackGameState);
         if (randomMove) {
@@ -406,11 +371,9 @@ app.post('/api/game/stop', async (req, res) => {
       console.log('Stopping backend process...');
       backendProcess.kill('SIGTERM');
       backendProcess = null;
-      // Wait for process to terminate
+      //wait for process to terminate
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
-    // Clear stored game configuration
     gameConfig = null;
     console.log('Game configuration cleared');
     
@@ -425,7 +388,6 @@ app.post('/api/game/stop', async (req, res) => {
 app.post('/api/game/reset', async (req, res) => {
   try {
     console.log('Resetting game state...');
-    
     // Stop existing backend process
     if (backendProcess) {
       console.log('Killing existing backend process for reset...');
@@ -433,11 +395,7 @@ app.post('/api/game/reset', async (req, res) => {
       backendProcess = null;
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
-    // Clear stored configuration
     gameConfig = null;
-    
-    // Clear game state file
     const emptyState = `Game Reset:
 LastPlayer: EMPTY
 MoveCount: 0
@@ -457,7 +415,6 @@ Board:
 });
 
 // Helper Functions
-
 // Thread-safe file writing to prevent glitches
 async function safeWriteFile(filePath, content) {
   while (fileWriteMutex) {
@@ -474,7 +431,7 @@ async function safeWriteFile(filePath, content) {
 
 async function startPythonBackend(config) {
   try {
-    // Convert frontend mode names to backend format
+    //frontend mode names to backend format
     let backendMode = config.mode;
     if (config.mode === 'USER_VS_AI') {
       backendMode = 'User vs AI';
@@ -484,7 +441,7 @@ async function startPythonBackend(config) {
       backendMode = 'User vs User';
     }
 
-    // Convert AI type names
+    //Convert AI type names
     let backendAiType = config.aiType;
     if (config.aiType === 'MINIMAX') {
       backendAiType = 'Smart';
@@ -492,7 +449,7 @@ async function startPythonBackend(config) {
       backendAiType = 'Random';
     }
 
-    // Convert firstPlayer names
+    //Convert firstPlayer names
     let backendFirstPlayer = config.firstPlayer;
     if (config.firstPlayer === 'HUMAN') {
       backendFirstPlayer = 'Human';
@@ -500,7 +457,7 @@ async function startPythonBackend(config) {
       backendFirstPlayer = 'AI';
     }
 
-    // Convert difficulty names
+    //Convert difficulty names
     let backendDifficulty = config.difficulty;
     if (config.difficulty === 'EASY') {
       backendDifficulty = 'Easy';
@@ -510,11 +467,11 @@ async function startPythonBackend(config) {
       backendDifficulty = 'Hard';
     }
 
-    // Create a config file for the Python backend
+    //a config file for the Python backend
     let configContent;
     
     if (config.mode === 'AI_VS_AI' && config.redAI && config.blueAI) {
-      // Handle AI vs AI mode with individual AI configurations
+      //AI vs AI mode with individual AI configurations
       configContent = JSON.stringify({
         rows: config.rows,
         cols: config.cols,
@@ -541,12 +498,11 @@ async function startPythonBackend(config) {
           {
             type: 'Random'
           },
-        firstPlayer: 'Red' // Always start with Red in AI vs AI
+        firstPlayer: 'Red' 
       });
     } else {
-      // Handle single AI configuration for other modes
+      //single AI configuration for other modes
       if (backendAiType === 'Random') {
-        // For Random AI, don't include difficulty or heuristic
         configContent = JSON.stringify({
           rows: config.rows,
           cols: config.cols,
@@ -555,7 +511,6 @@ async function startPythonBackend(config) {
           firstPlayer: backendFirstPlayer || 'Human'
         });
       } else {
-        // For Smart AI, include difficulty and heuristic
         configContent = JSON.stringify({
           rows: config.rows,
           cols: config.cols,
@@ -571,8 +526,6 @@ async function startPythonBackend(config) {
     const configPath = path.join(BACKEND_DIR, 'backend_config.json');
     await fs.writeFile(configPath, configContent);
     console.log('Backend config written to:', configPath);
-
-    // Check if Python script exists
     try {
       await fs.access(PYTHON_SCRIPT);
       console.log('Python script found:', PYTHON_SCRIPT);
@@ -652,11 +605,11 @@ function parseGameState(content) {
       if (cellStr === '⚫') {
         row.push({ orbs: 0, player: 'EMPTY' });
       } else if (cellStr.startsWith('🔴')) {
-        const orbStr = cellStr.substring(2); // Skip the emoji (🔴 is 2 characters)
+        const orbStr = cellStr.substring(2); 
         const orbs = orbStr ? parseInt(orbStr) : 1;
         row.push({ orbs, player: 'RED' });
       } else if (cellStr.startsWith('🔵')) {
-        const orbStr = cellStr.substring(2); // Skip the emoji (🔵 is 2 characters) 
+        const orbStr = cellStr.substring(2); 
         const orbs = orbStr ? parseInt(orbStr) : 1;
         row.push({ orbs, player: 'BLUE' });
       }
@@ -666,17 +619,13 @@ function parseGameState(content) {
     }
   }
 
-  // Determine current player
   if (!gameState.gameOver) {
     if (gameState.lastPlayer === 'EMPTY') {
-      gameState.currentPlayer = 'RED'; // First move is always RED
+      gameState.currentPlayer = 'RED'; 
     } else {
-      // Since lastPlayer is now normalized to uppercase
       gameState.currentPlayer = gameState.lastPlayer === 'RED' ? 'BLUE' : 'RED';
     }
   }
-
-  // Calculate scores (total orbs for each player)
   gameState.scores = { RED: 0, BLUE: 0 };
   for (const row of gameState.board) {
     for (const cell of row) {

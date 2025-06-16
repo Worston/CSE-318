@@ -16,21 +16,21 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
   const [moveCount, setMoveCount] = useState(0);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isAIThinking, setIsAIThinking] = useState(false);
-  const [resetTrigger, setResetTrigger] = useState(0); // Add reset trigger state
+  const [resetTrigger, setResetTrigger] = useState(0); //reset trigger state
   
-  // AI vs AI mode states
+  //AI vs AI mode states
   const [isAutoplay, setIsAutoplay] = useState(false);
   const [lastAIMoveTime, setLastAIMoveTime] = useState(0);
   
-  // Game initialization ref
+  //Game initialization ref
   const gameInitializedRef = useRef(false);
   const configHashRef = useRef('');
 
-  // Generate a hash for config to detect actual changes
+  //Generate a hash for config to detect actual changes
   const getConfigHash = (cfg) => {
     if (!cfg) return '';
     
-    // Include gameSessionId to ensure each new game gets a unique hash
+    //gameSessionId to ensure each new game gets a unique hash
     const sessionId = cfg.gameSessionId || '';
     
     if (cfg.mode === 'AI_VS_AI' && cfg.redAI && cfg.blueAI) {
@@ -39,7 +39,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     return `${cfg.rows}-${cfg.cols}-${cfg.mode}-${cfg.aiType}-${cfg.difficulty}-${cfg.firstPlayer}-${cfg.heuristic}-${sessionId}`;
   };
 
-  // Handle AI move in Human vs AI mode
+  //AI move in Human vs AI mode
   const makeAIMove = useCallback(async () => {
     console.log('GamePage: Making AI move...');
     setIsAIThinking(true);
@@ -62,7 +62,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       if (result.success && result.gameState) {
         console.log('GamePage: AI move completed successfully');
         
-        // Update game state with AI move result
+        //update game state with AI move result
         setGameState(prevState => ({
           ...prevState,
           board: result.gameState.board,
@@ -78,7 +78,6 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         }
       } else {
         console.error('GamePage: AI move failed:', result.error);
-        // Continue with game even if AI move fails
       }
     } catch (error) {
       console.error('GamePage: Failed to get AI move:', error);
@@ -87,7 +86,6 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     }
   }, [config]);
 
-  // Handle specific AI move for AI vs AI mode
   const makeSpecificAIMove = useCallback(async (aiPlayer) => {
     if (isGameOver || currentPlayer !== aiPlayer) {
       console.log(`GamePage: Cannot make ${aiPlayer} move - wrong turn or game over`);
@@ -114,7 +112,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       if (result.success && result.gameState) {
         console.log(`GamePage: ${aiPlayer} AI move completed successfully`);
         
-        // Update game state with AI move result
+        //update game state with AI move result
         setGameState(prevState => ({
           ...prevState,
           board: result.gameState.board,
@@ -124,11 +122,11 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         setCurrentPlayer(result.gameState.currentPlayer);
         setLastAIMoveTime(Date.now() - moveStartTime);
         
-        // Check for game over
+        //check for game over
         if (result.gameState.gameOver) {
           setIsGameOver(true);
           setWinner(result.gameState.winner);
-          setIsAutoplay(false); // Stop autoplay when game ends
+          setIsAutoplay(false); //stop autoplay when game ends
         }
       } else {
         console.error(`GamePage: ${aiPlayer} AI move failed:`, result.error);
@@ -140,7 +138,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     }
   }, [currentPlayer, isGameOver]);
 
-  // Toggle autoplay for AI vs AI mode
+  //toggle autoplay for AI vs AI mode
   const toggleAutoplay = useCallback(() => {
     if (config.mode !== 'AI_VS_AI') return;
     
@@ -149,7 +147,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       
       if (newAutoplay && !isGameOver) {
         console.log('GamePage: Starting autoplay...');
-        // Start autoplay with initial move
+        //start autoplay with initial move
         if (!isAIThinking) {
           makeSpecificAIMove(currentPlayer);
         }
@@ -161,20 +159,17 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     });
   }, [config.mode, isGameOver, isAIThinking, currentPlayer, makeSpecificAIMove]);
 
-  // Autoplay effect for AI vs AI mode
+  //autoplay effect for AI vs AI mode
   useEffect(() => {
     if (config.mode === 'AI_VS_AI' && isAutoplay && !isGameOver && !isAIThinking) {
-      // Calculate dynamic delay based on last move time and difficulty
-      let baseDelay = 1000; // Base 1 second delay
-      
-      // Reduce delay if AI took a long time (high difficulty)
+      let baseDelay = 1000; 
+
       if (lastAIMoveTime > 2000) {
-        baseDelay = 500; // Shorter delay for slow AI
+        baseDelay = 500; 
       } else if (lastAIMoveTime > 1000) {
         baseDelay = 750;
       }
       
-      // Add some visual breathing room
       const visualDelay = Math.max(300, baseDelay);
       
       const timeoutId = setTimeout(() => {
@@ -187,7 +182,6 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     }
   }, [config.mode, isAutoplay, isGameOver, isAIThinking, currentPlayer, lastAIMoveTime, makeSpecificAIMove]);
 
-  // Initialize game state and connect to backend - only run once when config changes
   useEffect(() => {
     const currentConfigHash = getConfigHash(config);
     
@@ -195,23 +189,19 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     console.log('GamePage: Previous config hash:', configHashRef.current);
     console.log('GamePage: gameInitializedRef.current:', gameInitializedRef.current);
     
-    // Only initialize if config actually changed or not initialized yet
     if (config && config.rows && config.cols && 
         (configHashRef.current !== currentConfigHash || !gameInitializedRef.current)) {
       
       console.log('GamePage: Starting game initialization...');
       gameInitializedRef.current = true;
       configHashRef.current = currentConfigHash;
-      
-      // Reset game over state immediately when starting a new configuration
       setIsGameOver(false);
       setWinner(null);
       setIsAIThinking(false);
       setIsAutoplay(false);
       setMoveCount(0);
-      setCurrentPlayer('RED'); // Will be updated by backend or config
+      setCurrentPlayer('RED'); 
       
-      // IMMEDIATELY set fresh game state to prevent showing old winning state
       const freshBoard = Array(config.rows).fill(null).map(() => 
         Array(config.cols).fill(null).map(() => ({ 
           orbs: 0, 
@@ -236,15 +226,12 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       
       console.log('GamePage: Fresh board state set immediately to prevent latency');
       
-      // Simple direct initialization without complex function dependencies
       const initGame = async () => {
         try {
-          // For backend modes
           if (config.mode === 'USER_VS_USER' || config.mode === 'USER_VS_AI' || config.mode === 'AI_VS_AI') {
             console.log('GamePage: Initializing backend with config:', config);
             
-            // Remove gameSessionId before sending to backend (it's only for frontend state management)
-            // eslint-disable-next-line no-unused-vars
+            //eslint-disable-next-line no-unused-vars
             const { gameSessionId, ...backendConfig } = config;
             
             const response = await fetch('http://localhost:3001/api/game/init', {
@@ -262,8 +249,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
             
             console.log('GamePage: Backend initialized successfully');
             setIsBackendConnected(true);
-            
-            // Fetch game state
+            //Fetch game state
             const stateResponse = await fetch('http://localhost:3001/api/game/state');
             const stateResult = await stateResponse.json();
             
@@ -276,7 +262,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
                 rows: stateResult.gameState.board.length,
                 cols: stateResult.gameState.board[0]?.length || 0,
                 mode: config.mode,
-                // Handle different config formats
+                //different config formats
                 ...(config.mode === 'AI_VS_AI' ? {
                   redAI: config.redAI,
                   blueAI: config.blueAI
@@ -288,9 +274,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
               
               setCurrentPlayer(stateResult.gameState.currentPlayer);
               setMoveCount(stateResult.gameState.moveCount);
-              
-              // For fresh game initialization, ignore game over state from backend
-              // as it might be stale from previous game
+          
               if (stateResult.gameState.moveCount === 0) {
                 console.log('GamePage: Fresh game detected, resetting game over state');
                 setIsGameOver(false);
@@ -302,7 +286,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
               
               console.log('GamePage: Game state loaded successfully from backend');
               
-              // If AI should start first, trigger AI move
+              //if AI should start first, triggering AI move
               if (config.mode === 'USER_VS_AI' && config.firstPlayer === 'AI') {
                 setTimeout(() => {
                   setIsAIThinking(true);
@@ -311,7 +295,6 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
               }
             }
           } else {
-            // For frontend-only modes
             console.log('GamePage: Initializing local game board...');
             
             const board = Array(config.rows).fill(null).map(() => 
@@ -348,17 +331,15 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       
       initGame();
     }
-  }, [config, makeAIMove, resetTrigger]); // Add resetTrigger to dependencies
+  }, [config, makeAIMove, resetTrigger]); 
   
-  // Trigger AI move when it's AI's turn
   useEffect(() => {
     if (gameState && config.mode === 'USER_VS_AI' && !isGameOver && !isAIThinking) {
       const aiPlayer = config.firstPlayer === 'AI' ? 'RED' : 'BLUE';
       
       if (currentPlayer === aiPlayer) {
         console.log('GamePage: AI turn detected, making AI move...');
-        // Add small delay before AI move for better UX (only if AI doesn't already take time)
-        const moveDelay = 300; // 300ms delay for smooth transitions
+        const moveDelay = 300; 
         setTimeout(() => {
           makeAIMove();
         }, moveDelay);
@@ -366,12 +347,10 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     }
   }, [currentPlayer, gameState, isGameOver, config.mode, config.firstPlayer, makeAIMove, isAIThinking]);
 
-  // Reset initialization flag when config changes
   useEffect(() => {
     gameInitializedRef.current = false;
   }, [config?.mode, config?.rows, config?.cols]);
 
-  // Calculate critical mass for a cell
   const getCriticalMass = (row, col) => {
     if (!config) return 4;
     
@@ -385,7 +364,6 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     return 4;
   };
 
-  // Calculate scores from board (for frontend-only modes)
   const calculateScores = (board) => {
     const scores = { RED: 0, BLUE: 0 };
     for (const row of board) {
@@ -400,7 +378,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     return scores;
   };
 
-  // Handle cell click for making moves
+  //handle cell click for making moves
   const makeMove = async (row, col) => {
     console.log('GamePage: makeMove called for cell:', row, col, 'current game state:', gameState);
     
@@ -409,13 +387,13 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       return;
     }
 
-    // In AI vs AI mode, prevent human from making moves
+    //AI vs AI mode, preventing human from making moves
     if (config.mode === 'AI_VS_AI') {
       console.log('GamePage: Move blocked - AI vs AI mode, use AI move buttons');
       return;
     }
     
-    // In Human vs AI mode, prevent human from moving when it's AI's turn
+    //Human vs AI mode, preventing human from moving when it's AI's turn
     if (config.mode === 'USER_VS_AI') {
       const humanPlayer = config.firstPlayer === 'AI' ? 'BLUE' : 'RED';
       if (currentPlayer !== humanPlayer) {
@@ -423,7 +401,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         return;
       }
       
-      // Also block moves when AI is thinking
+      //blocking moves when AI is thinking
       if (isAIThinking) {
         console.log('GamePage: Move blocked - AI is thinking');
         return;
@@ -435,18 +413,18 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     const cell = gameState.board[row][col];
     console.log('GamePage: Clicked cell state:', cell);
     
-    // Check if move is valid
+    //if move is valid
     if (cell.player !== 'EMPTY' && cell.player !== currentPlayer) {
       console.log('GamePage: Invalid move - cell belongs to opponent');
       return;
     }
     
-    // Create new board state (basic move without explosions)
+    //creating new board state (basic move without explosions)
     const newBoard = gameState.board.map(boardRow => 
       boardRow.map(boardCell => ({ ...boardCell }))
     );
     
-    // Add orb to clicked cell
+    //adding orb to clicked cell
     newBoard[row][col] = {
       orbs: cell.orbs + 1,
       player: currentPlayer
@@ -454,9 +432,8 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     
     console.log('GamePage: Added orb to cell:', row, col, 'new orbs:', newBoard[row][col].orbs);
     
-    // For human vs human mode, use backend synchronization
+    //human vs human mode, backend synchronization
     if (config.mode === 'USER_VS_USER' && isBackendConnected) {
-      // Send move to backend via HTTP API (send ORIGINAL board state, not the modified one)
       try {
         const response = await fetch('http://localhost:3001/api/game/move', {
           method: 'POST',
@@ -464,7 +441,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            board: gameState.board, // Send original board state
+            board: gameState.board, 
             row,
             col,
             currentPlayer
@@ -474,8 +451,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         const result = await response.json();
         if (result.success) {
           console.log('GamePage: Move processed by backend successfully');
-          
-          // If backend returned updated game state, use it
+         
           if (result.gameState) {
             console.log('GamePage: Updating game state from backend:', result.gameState);
             setGameState(prevState => ({
@@ -486,15 +462,12 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
             setMoveCount(result.gameState.moveCount);
             setCurrentPlayer(result.gameState.currentPlayer);
             
-            // Check for game over
             if (result.gameState.gameOver) {
               setIsGameOver(true);
               setWinner(result.gameState.winner);
             }
             return;
           } else {
-            // Backend processed move but didn't return updated state
-            // Update UI immediately for responsiveness
             const updatedScores = calculateScores(newBoard);
             setGameState({
               ...gameState,
@@ -508,18 +481,16 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
           }
         } else {
           console.error('GamePage: Backend rejected move:', result.error);
-          return; // Don't make the move if backend rejected it
+          return; 
         }
       } catch (error) {
         console.error('GamePage: Failed to send move to backend, using frontend fallback:', error);
-        // Fall through to frontend-only logic
       }
     }
     
-    // For Human vs AI mode, handle the flow differently
     if (config.mode === 'USER_VS_AI') {
       try {
-        // Send human move to backend
+        //send human move to backend
         const response = await fetch('http://localhost:3001/api/game/move', {
           method: 'POST',
           headers: {
@@ -535,7 +506,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         
         const result = await response.json();
         if (result.success && result.gameState) {
-          // Update game state with human move
+          //update game state with human move
           setGameState(prevState => ({
             ...prevState,
             board: result.gameState.board,
@@ -543,15 +514,13 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
           }));
           setMoveCount(result.gameState.moveCount);
           setCurrentPlayer(result.gameState.currentPlayer);
-          
-          // Check for game over after human move
           if (result.gameState.gameOver) {
             setIsGameOver(true);
             setWinner(result.gameState.winner);
             return;
           }
           
-          // Trigger AI move after a short delay for better UX
+          //AI move after a short delay for better UX
           setTimeout(() => {
             makeAIMove();
           }, 500);
@@ -566,8 +535,7 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
         return;
       }
     }
-    
-    // Frontend-only logic for other modes or when backend is unavailable
+  
     const updatedScores = calculateScores(newBoard);
     setGameState({
       ...gameState,
@@ -577,21 +545,16 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
     
     const newMoveCount = moveCount + 1;
     setMoveCount(newMoveCount);
-    
-    // Switch player
+
     const nextPlayer = currentPlayer === 'RED' ? 'BLUE' : 'RED';
     setCurrentPlayer(nextPlayer);
     console.log('GamePage: Switched to player:', nextPlayer);
   };
-
-  // Reset game
   const resetGame = async () => {
     console.log('GamePage: Resetting game');
     
-    // Stop autoplay when resetting
     setIsAutoplay(false);
     
-    // FIRST: Call backend reset endpoint to clear backend state
     try {
       console.log('GamePage: Calling backend reset...');
       const resetResponse = await fetch('http://localhost:3001/api/game/reset', {
@@ -611,27 +574,20 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
       console.error('GamePage: Failed to reset backend:', error);
     }
     
-    // Reset frontend state completely
     setIsBackendConnected(false);
     setIsGameOver(false);
     setWinner(null);
     setMoveCount(0);
     setCurrentPlayer('RED');
     setIsAIThinking(false);
-    setIsAutoplay(false); // Reset autoplay state
-    setLastAIMoveTime(0); // Reset AI move timing
+    setIsAutoplay(false); 
+    setLastAIMoveTime(0); 
     
-    // Clear refs to force re-initialization
     gameInitializedRef.current = false;
     configHashRef.current = ''; 
-    
-    // Set gameState to null to show loading state
+  
     setGameState(null);
-    
     console.log('GamePage: Game reset completed, forcing re-initialization...');
-    
-    // Trigger re-initialization by incrementing resetTrigger
-    // This will cause the useEffect to re-run even with the same config
     setResetTrigger(prev => prev + 1);
   };
 
@@ -849,10 +805,8 @@ const GamePage = ({ config, onGoHome, onShowConfigModal }) => {
               <div className="flex space-x-4 justify-center">
                 <button 
                   onClick={() => {
-                    // Reset game over state immediately to hide modal
                     setIsGameOver(false);
                     setWinner(null);
-                    // Then show config modal
                     onShowConfigModal();
                   }} 
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"

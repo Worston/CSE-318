@@ -58,7 +58,7 @@ const HomePage = ({ onShowConfigModal }) => {
             <span>Game Rules</span>
           </button>
         </div>
-        </div>      {/* Features Grid */}
+        </div>      {/*Features Grid*/}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         {features.map((feature, index) => (
           <div 
@@ -72,7 +72,7 @@ const HomePage = ({ onShowConfigModal }) => {
             <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
           </div>
         ))}
-      </div>      {/* Game Preview Section */}
+      </div>      {/*Game Preview Section*/}
       <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700 backdrop-blur-sm text-center mb-16">
         <h2 className="text-3xl font-bold mb-6 text-white">How It Works</h2>
         <div className="grid md:grid-cols-3 gap-8">
@@ -102,7 +102,7 @@ const HomePage = ({ onShowConfigModal }) => {
         </div>
       </div>
 
-      {/* Call to Action */}
+      {/*Call to Action*/}
       <div className="text-center">
         <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700 backdrop-blur-sm inline-block">
           <h2 className="text-2xl font-bold mb-4 text-white">Ready for the Challenge?</h2>
@@ -117,7 +117,7 @@ const HomePage = ({ onShowConfigModal }) => {
       </div>
       </div>
 
-      {/* Rules Modal */}
+      {/*Rules Modal*/}
       {showRules && (
         <RulesModal 
           isOpen={showRules} 
@@ -128,7 +128,6 @@ const HomePage = ({ onShowConfigModal }) => {
   );
 };
 
-// Simple Rules Modal Component
 const RulesModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 

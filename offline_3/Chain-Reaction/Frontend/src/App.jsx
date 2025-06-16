@@ -11,10 +11,10 @@ function App() {
 
   const startGame = (config) => {
     console.log('App: startGame called with config:', config);
-    // Add a unique game session ID to force re-initialization even with same config
+    // a unique game session ID to force re-initialization even with same config
     const configWithSessionId = {
       ...config,
-      gameSessionId: Date.now() + Math.random() // Unique identifier for each game start
+      gameSessionId: Date.now() + Math.random() // Unique identifier for each game 
     };
     setGameConfig(configWithSessionId);
     setCurrentPage('game');
