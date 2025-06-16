@@ -10,7 +10,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
   const [firstPlayer, setFirstPlayer] = useState('HUMAN');
   const [heuristic, setHeuristic] = useState('combined_v2');
   
-  // AI vs AI specific configurations
+  //AI vs AI specific configurations
   const [redAIType, setRedAIType] = useState('MINIMAX');
   const [redAIDifficulty, setRedAIDifficulty] = useState('MEDIUM');
   const [redAIHeuristic, setRedAIHeuristic] = useState('combined_v2');
@@ -24,7 +24,6 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
     let gameConfig;
     
     if (gameMode === 'AI_VS_AI') {
-      // For AI vs AI mode, include individual AI configurations
       gameConfig = {
         mode: gameMode,
         rows: parseInt(rows),
@@ -39,10 +38,9 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
           difficulty: blueAIDifficulty,
           heuristic: blueAIType === 'MINIMAX' ? blueAIHeuristic : null
         },
-        firstPlayer: 'RED' // Always start with Red in AI vs AI
+        firstPlayer: 'RED' //Always start with Red in AI vs AI
       };
     } else {
-      // For other modes, use the single AI configuration
       gameConfig = {
         mode: gameMode,
         rows: parseInt(rows),
@@ -194,7 +192,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                 <p className="text-xs text-slate-500 mt-1">Range: 3-10 for both rows and columns</p>
               </div>
 
-              {/* AI Settings (only show if AI is involved) */}
+              {/* AI Settings */}
               {gameMode === 'USER_VS_AI' && (
                 <>
                       <div>
@@ -212,7 +210,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                         )}
                       </div>
 
-                  {/* Difficulty Selection (only show for MINIMAX AI) */}
+                  {/* Difficulty Selection */}
                   {aiType === 'MINIMAX' && (
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">Difficulty</label>
@@ -230,7 +228,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                     </div>
                   )}
 
-                  {/* Heuristic Selection (only show for MINIMAX AI) */}
+                  {/* Heuristic Selection */}
                   {aiType === 'MINIMAX' && (
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">AI Heuristic Strategy</label>
@@ -279,7 +277,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                         )}
                       </div>
 
-                      {/* Difficulty Selection (only show for MINIMAX AI) */}
+                      {/* Difficulty Selection */}
                       {redAIType === 'MINIMAX' && (
                         <div>
                           <label className="block text-sm font-medium text-slate-300 mb-2">Difficulty</label>
@@ -341,7 +339,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                         )}
                       </div>
 
-                      {/* Difficulty Selection (only show for MINIMAX AI) */}
+                      {/* Difficulty Selection */}
                       {blueAIType === 'MINIMAX' && (
                         <div>
                           <label className="block text-sm font-medium text-slate-300 mb-2">Difficulty</label>
@@ -382,7 +380,7 @@ const GameModeModal = ({ isOpen, onClose, onStartGame }) => {
                 </div>
               )}
 
-              {/* First Player (only for USER_VS_AI) */}
+              {/* First Player */}
               {gameMode === 'USER_VS_AI' && (
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">First Player</label>

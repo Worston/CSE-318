@@ -1,7 +1,7 @@
 import { Trophy, Target } from 'lucide-react';
 
 const ScoreBoard = ({ scores, currentPlayer, isGameOver, winner, compact = false }) => {
-  // Default scores if not provided
+  //Default scores 
   const defaultScores = { RED: 0, BLUE: 0 };
   const currentScores = scores || defaultScores;
 
@@ -35,7 +35,6 @@ const ScoreBoard = ({ scores, currentPlayer, isGameOver, winner, compact = false
       </h3>
       
       {compact ? (
-        // Compact horizontal layout
         <div className="flex space-x-4">
           {/* Red Player Score */}
           <div className={`flex-1 p-2 rounded-lg border-2 transition-all duration-300 ${
@@ -73,7 +72,7 @@ const ScoreBoard = ({ scores, currentPlayer, isGameOver, winner, compact = false
             </div>
           </div>
 
-          {/* Score difference indicator - compact */}
+          {/* Score difference indicator-compact */}
           {!isGameOver && (currentScores.RED > 0 || currentScores.BLUE > 0) && (
             <div className="flex items-center px-3">
               <div className="text-xs text-slate-400">

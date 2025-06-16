@@ -8,11 +8,9 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
     if (isGameOver) return;
     onCellClick(row, col);
     
-    // Add animation to the clicked cell
     const cellKey = `${row}-${col}`;
     setAnimatingCells(prev => new Set([...prev, cellKey]));
-    
-    // Remove animation after delay
+
     setTimeout(() => {
       setAnimatingCells(prev => {
         const newSet = new Set(prev);
@@ -22,7 +20,6 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
     }, 600);
   };
 
-  // Effect to detect and animate explosions
   useEffect(() => {
     const newExplosions = new Set();
     
@@ -36,8 +33,7 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
     });
     
     setExplosions(newExplosions);
-    
-    // Clear explosions after animation
+  
     if (newExplosions.size > 0) {
       setTimeout(() => setExplosions(new Set()), 1000);
     }
@@ -51,19 +47,16 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
     const isAnimating = animatingCells.has(cellKey);
     const isExploding = explosions.has(cellKey);
     
-    // Check if this is a valid move for the current player
     const isValidMove = !isGameOver && (cell.player === 'EMPTY' || cell.player === currentPlayer);
     
     let baseClasses = 'game-cell w-20 h-20 rounded-xl border-3 flex items-center justify-center font-bold text-lg transition-all duration-300 select-none relative overflow-hidden shadow-lg';
     
-    // Cursor based on move validity
     if (isValidMove) {
       baseClasses += ' cursor-pointer';
     } else {
       baseClasses += ' cursor-not-allowed';
     }
     
-    // Player colors with enhanced gradients and glow effects
     if (cell.player === 'RED') {
       baseClasses += ' bg-gradient-to-br from-red-400 via-red-500 to-red-600 border-red-300 text-white shadow-red-500/50 hover:shadow-red-400/70';
     } else if (cell.player === 'BLUE') {
@@ -72,7 +65,6 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
       baseClasses += ' bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 border-slate-500 text-slate-300 hover:border-slate-400 hover:from-slate-500 hover:to-slate-600';
     }
     
-    // Animation states
     if (isAnimating) {
       baseClasses += ' scale-110 ring-4 ring-yellow-400 ring-opacity-60';
     }
@@ -89,7 +81,6 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
       baseClasses += ' ring-4 ring-red-500 ring-opacity-90 shadow-red-500/70 animate-pulse';
     }
     
-    // Hover effects for valid moves only
     if (isValidMove) {
       baseClasses += ' hover:scale-105 hover:shadow-2xl transform transition-transform duration-200';
       if (currentPlayer === 'RED') {
@@ -98,7 +89,6 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
         baseClasses += ' hover:ring-2 hover:ring-blue-400 hover:ring-opacity-60';
       }
     } else {
-      // Visual feedback for invalid moves
       baseClasses += ' opacity-75 hover:opacity-60';
     }
     
@@ -116,7 +106,7 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
       );
     }
 
-    const orbCount = Math.min(cell.orbs, 6); // Show up to 6 orbs visually
+    const orbCount = Math.min(cell.orbs, 6); 
     const orbColor = cell.player === 'RED' ? 'from-red-200 to-red-100' : 'from-blue-200 to-blue-100';
     const shadowColor = cell.player === 'RED' ? 'shadow-red-500/60' : 'shadow-blue-500/60';
     const pulseColor = cell.player === 'RED' ? 'shadow-red-400/80' : 'shadow-blue-400/80';
@@ -182,7 +172,6 @@ const GameBoard = ({ board, onCellClick, isGameOver, currentPlayer, getCriticalM
       );
     }
     
-    // For 4+ orbs, show number with enhanced styling
     return (
       <div className="relative">
         <div className="text-lg font-bold drop-shadow-lg">{cell.orbs}</div>

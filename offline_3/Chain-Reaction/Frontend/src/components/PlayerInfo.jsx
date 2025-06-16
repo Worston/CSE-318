@@ -5,7 +5,7 @@ const PlayerInfo = ({ config, currentPlayer, isAIThinking }) => {
     if (config.mode === 'USER_VS_USER') return 'Human';
     if (config.mode === 'AI_VS_AI' || config.mode === 'AI vs AI') return 'AI';
     if (config.mode === 'USER_VS_AI' || config.mode === 'User vs AI') {
-      // Handle different casing variations
+      //casing variations
       const firstPlayerAI = config.firstPlayer === 'AI' || config.firstPlayer === 'ai';
       const firstPlayerHuman = config.firstPlayer === 'HUMAN' || config.firstPlayer === 'Human' || config.firstPlayer === 'human';
       
@@ -19,11 +19,9 @@ const PlayerInfo = ({ config, currentPlayer, isAIThinking }) => {
   };
 
   const getPlayerAIConfig = (player) => {
-    // For AI vs AI mode with individual AI configurations
     if (config.mode === 'AI_VS_AI' && config.redAI && config.blueAI) {
       return player === 'RED' ? config.redAI : config.blueAI;
     }
-    // For legacy modes with single AI configuration
     return {
       type: config.aiType,
       difficulty: config.difficulty,
@@ -35,7 +33,6 @@ const PlayerInfo = ({ config, currentPlayer, isAIThinking }) => {
     const playerType = getPlayerType(player);
     if (playerType === 'AI') {
       const aiConfig = getPlayerAIConfig(player);
-      // Check for Smart AI variations
       return (aiConfig.type === 'Smart' || aiConfig.type === 'SMART' || aiConfig.type === 'MINIMAX') ? 
         <Brain className="w-5 h-5" /> : <Zap className="w-5 h-5" />;
     }
@@ -46,21 +43,18 @@ const PlayerInfo = ({ config, currentPlayer, isAIThinking }) => {
     const playerType = getPlayerType(player);
     if (playerType === 'AI') {
       const aiConfig = getPlayerAIConfig(player);
-      
-      // Debug logging
+      //logging
       console.log(`PlayerInfo: ${player} - playerType: ${playerType}, aiConfig:`, aiConfig);
-      
-      // Check for Smart AI variations
+      //Smart AI variations
       if (aiConfig.type === 'Smart' || aiConfig.type === 'SMART' || aiConfig.type === 'MINIMAX') {
         const difficulty = aiConfig.difficulty || 'Medium';
         const heuristic = aiConfig.heuristic;
         return `Smart AI (${difficulty})${heuristic ? ` - ${heuristic}` : ''}`;
       }
-      // For Random AI
+      //Random AI
       if (aiConfig.type === 'Random' || aiConfig.type === 'RANDOM') {
         return 'Random AI';
       }
-      // Fallback
       return 'AI Player';
     }
     return 'Human Player';
