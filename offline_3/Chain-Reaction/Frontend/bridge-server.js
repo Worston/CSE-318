@@ -297,7 +297,7 @@ app.post('/api/game/ai-move', async (req, res) => {
     }
  
     let attempts = 0;
-    const maxAttempts = 250; // Allow more time for AI thinking
+    const maxAttempts = 200; // Allow more time for AI thinking
     
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 200)); // 200ms intervals
@@ -306,7 +306,7 @@ app.post('/api/game/ai-move', async (req, res) => {
       try {
         const updatedContent = await fs.readFile(GAME_STATE_FILE, 'utf8');
         
-        //Check if the AI has made a move (content changed and no AI_MOVE_REQUEST)
+        //if the AI has made a move (content changed and no AI_MOVE_REQUEST)
         if (updatedContent !== currentContent && 
             !updatedContent.includes('AI_MOVE_REQUEST') &&
             (updatedContent.includes('AI Move') || 
@@ -364,7 +364,7 @@ app.post('/api/game/ai-move', async (req, res) => {
   }
 });
 
-// Stop backend process
+//stopiing backend process
 app.post('/api/game/stop', async (req, res) => {
   try {
     if (backendProcess) {
