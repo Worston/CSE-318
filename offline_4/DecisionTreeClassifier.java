@@ -1,14 +1,12 @@
 import java.util.*;
 
 public class DecisionTreeClassifier {
-    
     private TreeNode rootNode;
     private DecisionTreeBuilder treeBuilder;
     
     public DecisionTreeClassifier(String criterionCode, int maxDepth) {
         this.treeBuilder = new DecisionTreeBuilder(criterionCode, maxDepth);
     }
-    
     public DecisionTreeClassifier(SplitCriterion criterion, int maxDepth) {
         this.treeBuilder = new DecisionTreeBuilder(criterion, maxDepth);
     }
@@ -17,7 +15,6 @@ public class DecisionTreeClassifier {
         if (trainingSamples == null || trainingSamples.isEmpty()) {
             throw new IllegalArgumentException("Training samples cannot be null or empty");
         }
-        
         this.rootNode = treeBuilder.buildTree(trainingSamples);
     }
     
@@ -25,7 +22,6 @@ public class DecisionTreeClassifier {
         if (rootNode == null) {
             throw new IllegalStateException("Model has not been trained yet");
         }
-        
         String prediction = traverseTreeForPrediction(rootNode, sample);
         return prediction;
     }
@@ -34,11 +30,8 @@ public class DecisionTreeClassifier {
         if (node.isLeafNode()) {
             return node.getClassLabel();
         }
-        
         String featureValue = sample.getFeatureValue(node.getSplitAttribute());
-        if (featureValue == null) featureValue = "?";
-        
-        // Try direct categorical lookup first
+        if (featureValue == null) featureValue = "";  //changed from '?'
         TreeNode childNode = node.getChild(featureValue);
         
         if (childNode == null) {
@@ -54,7 +47,6 @@ public class DecisionTreeClassifier {
             }
             return "unknown";
         }
-        
         return traverseTreeForPrediction(childNode, sample);
     }
     

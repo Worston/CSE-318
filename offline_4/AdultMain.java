@@ -1,5 +1,6 @@
 import java.util.Arrays;
 import java.util.Random;
+import java.util.List;
 
 public class AdultMain {
     public static void main(String[] args) {
@@ -42,8 +43,8 @@ public class AdultMain {
             
             // Split dataset 80/20 with fixed seed for reproducibility
             DatasetSplit split = loader.splitDataset(datasetInfo.getSamples(), 0.8, new Random(42));
-            java.util.List<DataSample> trainSet = split.getTrainSet();
-            java.util.List<DataSample> testSet = split.getTestSet();
+            List<DataSample> trainSet = split.getTrainSet();
+            List<DataSample> testSet = split.getTestSet();
             
             System.out.println("Train size: " + trainSet.size() + " (" + String.format("%.1f", trainSet.size() * 100.0 / datasetInfo.getSamples().size()) + "%)");
             System.out.println("Test size: " + testSet.size() + " (" + String.format("%.1f", testSet.size() * 100.0 / datasetInfo.getSamples().size()) + "%)");
@@ -81,7 +82,7 @@ public class AdultMain {
             
             // Uncomment these for debugging:
             // classifier.demonstrateTreeConstruction(datasetInfo.getSamples(), "Adult");
-            //runner.compareAllCriteria(datasetInfo.getSamples(), maxDepth, "Adult");
+            // runner.compareAllCriteria(datasetInfo.getSamples(), maxDepth, "Adult");
             
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());

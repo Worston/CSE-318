@@ -1,8 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class DatasetLoader {
-    
+public class DatasetLoader {    
     public DatasetInfo loadDataset(String filePath) throws IOException {
         List<String> headers = new ArrayList<>();
         List<DataSample> samples = new ArrayList<>();
@@ -13,7 +12,6 @@ public class DatasetLoader {
                 throw new IOException("File is empty or missing headers");
             }
             
-            // Parse headers
             String[] headerArray = headerLine.split(",");
             for (String header : headerArray) {
                 headers.add(header.trim());
@@ -26,7 +24,6 @@ public class DatasetLoader {
                 lineNumber++;
                 line = line.trim();
                 
-                // Skip truly empty lines
                 if (line.isEmpty()) {
                     continue;
                 }
@@ -47,16 +44,12 @@ public class DatasetLoader {
                     String value = values[i];
                     
                     // Skip irrelevant features but include ALL values (including '?' and empty)
+                    // Match demo behavior - keep original values as they are
                     if (!isIrrelevantFeature(featureName)) {
-                        // Treat empty values as missing values represented by "?"
-                        if (value == null || value.trim().isEmpty()) {
-                            value = "?";
-                        }
                         features.put(featureName, value);
                     }
                 }
                 
-                // Get target class (last column)
                 String targetClass = values[headers.size() - 1];
                 if (!targetClass.trim().isEmpty()) {
                     samples.add(new DataSample(features, targetClass));
@@ -72,8 +65,6 @@ public class DatasetLoader {
         if (featureName == null) return true;
         
         String lower = featureName.toLowerCase();
-        
-        // ONLY exclude actual ID columns - be very specific
         if (lower.equals("id") || 
             lower.equals("index") || 
             lower.equals("row") || 
@@ -82,7 +73,6 @@ public class DatasetLoader {
             lower.equals("no")) {
             return true;
         }
-        
         return false;
     }
     
@@ -93,12 +83,9 @@ public class DatasetLoader {
     }
     
     public DatasetSplit splitDataset(List<DataSample> samples, double trainRatio, Random random) {
-        // Use simple random split to match demo behavior
         List<DataSample> shuffledSamples = new ArrayList<>(samples);
         Collections.shuffle(shuffledSamples, random);
-        
         int trainSize = (int) (shuffledSamples.size() * trainRatio);
-        
         List<DataSample> trainSet = shuffledSamples.subList(0, trainSize);
         List<DataSample> testSet = shuffledSamples.subList(trainSize, shuffledSamples.size());
         

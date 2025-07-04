@@ -15,7 +15,6 @@ public class DatasetInfo {
         this.samples = new ArrayList<>(samples);
         this.classDistribution = new HashMap<>();
         
-        // Calculate class distribution
         for (DataSample sample : samples) {
             String targetClass = sample.getTargetClass();
             classDistribution.put(targetClass, classDistribution.getOrDefault(targetClass, 0) + 1);
@@ -25,7 +24,7 @@ public class DatasetInfo {
     public void displayInfo() {
         System.out.println("=== Dataset: " + datasetName + " ===");
         System.out.println("Total samples: " + samples.size());
-        System.out.println("Total features: " + (headers.size() - 1)); // Exclude target column
+        System.out.println("Total features: " + (headers.size() - 1)); 
         //System.out.println("Features: " + headers.subList(0, headers.size() - 1));
         System.out.println("Target column: " + headers.get(headers.size() - 1));
         System.out.println("Class distribution:");
