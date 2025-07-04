@@ -2,5 +2,5 @@
 offline_1/__pycache__
 offline_1/heuristics/__pycache__
 offline_2/testcases/
-offline_4/specs.txt/
+offline_4/*.txt/
 offline_4/Datasets/
