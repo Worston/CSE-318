@@ -30,9 +30,7 @@ public class PartitioningUtils {
         // Consider continuous if:
         // 1. More than 70% of values are numeric
         // 2. Has sufficient unique values to benefit from ranging
-        return totalCount > 0 && 
-               (double) numericCount / totalCount > 0.7 && 
-               uniqueValues.size() > 10;
+        return totalCount > 0 && (double) numericCount / totalCount > 0.7 && uniqueValues.size() > 10;
     }
 
     public static Map<String, List<DataSample>> partitionByContinuousFeatureForTreeBuilding(List<DataSample> samples, String feature) {
@@ -49,7 +47,6 @@ public class PartitioningUtils {
     
     private static Map<String, List<DataSample>> partitionByContinuousFeatureWithIntervals(List<DataSample> samples, String feature, boolean limitIntervals) {
         Map<String, List<DataSample>> partitions = new HashMap<>();
-      
         List<Double> values = new ArrayList<>();
         for (DataSample sample : samples) {
             String value = sample.getFeatureValue(feature);
@@ -67,57 +64,57 @@ public class PartitioningUtils {
             return partitionByCategoricalFeature(samples, feature);
         }
         
-        double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
-        for (Double value : values) {
-            if (value < min) min = value;
-            if (value > max) max = value;
-        }
+        double min = Collections.min(values);
+        double max = Collections.max(values);
         
         if (Math.abs(max - min) < 1e-10) {
             return partitionByCategoricalFeature(samples, feature);
         }
         int intervals;
         if (limitIntervals) {
-            //limited intervals (2-5)
-            intervals = Math.max(2, Math.min(5, (int) Math.round((max - min) * 3)));
+            //limited intervals (10-100)
+            intervals = Math.max(10, Math.min(100, (int) Math.round((max - min) * 3)));
         } else {
             //unlimited intervals
             intervals = Math.max(2, (int) Math.round((max - min) * 3));
+            //intervals = Math.max(2, Math.min(100000, (int) Math.round((max - min) * 3)));
         }
         
         double stepSize = (max - min) / intervals;
-        for (double rangeStart = min; rangeStart < max; rangeStart += stepSize) {
+        List<Double> rangeStarts = new ArrayList<>();
+        for (int i = 0; i < intervals; i++) {
+            double rangeStart = min + i * stepSize;
+            rangeStarts.add(rangeStart);
             partitions.put(String.valueOf(rangeStart), new ArrayList<>());
         }
+
+        // Assign samples to intervals using binary search
         for (DataSample sample : samples) {
             String value = sample.getFeatureValue(feature);
             if (value == null || value.trim().isEmpty() || value.equals("?")) {
                 continue;
             }
-            
             try {
                 double numValue = Double.parseDouble(value);
-                double initRange = min;
-                for (double range = min + stepSize; range <= max; range += stepSize) {
-                    if (numValue >= initRange && numValue < range) {
-                        break;
-                    }
-                    initRange = range;
-                }
-                
-                String rangeKey = String.valueOf(initRange);
-                if (partitions.containsKey(rangeKey)) {
-                    partitions.get(rangeKey).add(sample);
+                int index = Collections.binarySearch(rangeStarts, numValue);
+                String rangeKey;
+                if (index >= 0) {
+                    // Exact match
+                    rangeKey = String.valueOf(rangeStarts.get(index));
                 } else {
-                    String lastKey = String.valueOf(min + (intervals - 1) * stepSize);
-                    if (partitions.containsKey(lastKey)) {
-                        partitions.get(lastKey).add(sample);
+                    // Insertion point indicates the interval
+                    int insertionPoint = -index - 1;
+                    if (insertionPoint == 0) {
+                        rangeKey = String.valueOf(rangeStarts.get(0));
+                    } else if (insertionPoint >= intervals) {
+                        rangeKey = String.valueOf(rangeStarts.get(intervals - 1));
+                    } else {
+                        rangeKey = String.valueOf(rangeStarts.get(insertionPoint - 1));
                     }
                 }
+                partitions.get(rangeKey).add(sample);
             } catch (NumberFormatException e) {
-                //Skip non-numeric values
-                continue;
+                // Skip non-numeric values
             }
         }
         partitions.entrySet().removeIf(entry -> entry.getValue().isEmpty());
@@ -127,7 +124,6 @@ public class PartitioningUtils {
 
     public static Map<String, List<DataSample>> partitionByCategoricalFeature(List<DataSample> samples, String feature) {
         Map<String, List<DataSample>> partitions = new HashMap<>();
-        
         for (DataSample sample : samples) {
             String value = sample.getFeatureValue(feature);
 

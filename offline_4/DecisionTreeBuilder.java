@@ -59,7 +59,6 @@ public class DecisionTreeBuilder {
         for (Map.Entry<String, List<DataSample>> entry : partitions.entrySet()) {
             String featureValue = entry.getKey();
             List<DataSample> partition = entry.getValue();
-            
             if (!partition.isEmpty()) {
                 TreeNode childNode = constructTreeRecursive(partition, remainingFeatures, currentDepth + 1);
                 node.addBranch(featureValue, childNode);
